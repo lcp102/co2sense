@@ -18,6 +18,7 @@ run           : ./bin/i2ctest
 #include<lcd.h>
 #include <string.h>
 #include<signal.h>
+
 #define RS 9
 #define E 11
 #define D0 14
