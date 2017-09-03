@@ -97,39 +97,39 @@ float read_voltage(uint8_t config[]){
   return val * VPS;
 }
 void indicate_led_buzz(float ppm){
+  // we dont want the GPIO to be erquested to change state even when it is in the required state
+  // so we change the state only when necessary
   if (ppm <850.00) {
     // the light is blue, buzzer is off
-    digitalWrite(BLUE_GPIO, HIGH);
-    digitalWrite(RED_GPIO, LOW);
-    digitalWrite(BUZZ_GPIO, LOW);
+    if(digitalRead(BLUE_GPIO) ==0){digitalWrite(BLUE_GPIO, HIGH);}
+    if(digitalRead(RED_GPIO)==1){digitalWrite(RED_GPIO, LOW);}
+    if(digitalRead(BUZZ_GPIO)==1){digitalWrite(BUZZ_GPIO, LOW);}
   }
   else if(ppm <=1700.00){
     // the light is magenta, buzzer is off
-    digitalWrite(BLUE_GPIO, HIGH);
-    digitalWrite(RED_GPIO, HIGH);
-    digitalWrite(BUZZ_GPIO, LOW);
+    if(digitalRead(BLUE_GPIO) ==0){digitalWrite(BLUE_GPIO, HIGH);}
+    if(digitalRead(RED_GPIO)==0){digitalWrite(RED_GPIO, HIGH);}
+    if(digitalRead(BUZZ_GPIO)==1){digitalWrite(BUZZ_GPIO, LOW);}
   }
   else {
     // the light is red, buzzer is on
-    digitalWrite(BLUE_GPIO, LOW);
-    digitalWrite(RED_GPIO, HIGH);
-    digitalWrite(BUZZ_GPIO, HIGH);
+    if(digitalRead(BLUE_GPIO) ==1){digitalWrite(BLUE_GPIO, LOW);}
+    if(digitalRead(RED_GPIO)==0){digitalWrite(RED_GPIO, HIGH);}
+    if(digitalRead(BUZZ_GPIO)==0){digitalWrite(BUZZ_GPIO, HIGH);}
   }
 }
-void on_terminate(){
+void flush_gpio(){
   digitalWrite(BLUE_GPIO, LOW);
   digitalWrite(RED_GPIO, LOW);
   digitalWrite(BUZZ_GPIO, LOW);
   lcdClear(lcd);
   lcdPuts(lcd, "Shutting down..");
 }
+void on_terminate(){
+  flush_gpio();
+}
 void on_interrupt(int signal){
-  printf("Programming interrupted , shutting down..\n");
-  digitalWrite(BLUE_GPIO, LOW);
-  digitalWrite(RED_GPIO, LOW);
-  digitalWrite(BUZZ_GPIO, LOW);
-  lcdClear(lcd);
-  lcdPuts(lcd, "Shutting down..");
+  flush_gpio();
   exit(-1);
 }
 int main(int argc, char const *argv[]) {
