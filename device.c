@@ -18,6 +18,8 @@ run           : ./bin/i2ctest
 #include<lcd.h>
 #include <string.h>
 #include<signal.h>
+// this is for making system calls via shell
+#include<system.h>
 
 #define RS 9
 #define E 11
@@ -42,7 +44,76 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 #define RESIS_LOAD 2.5 // in Kohms , is the resistance on RL as measured
 #define LOOP_MAX 3600
 #define LOOP_SLEEP_SECS 2
+#define BTNRESTART_GPIO 21 //on the falling of this GPIO we would want the program to restart
 int lcd;
+void on_interrupt(int signal);
+void flush_gpio();
+void indicate_led_buzz(float ppm);
+float read_voltage(uint8_t config[]);
+void display_marquee(float temp, float light, float co2);
+void on_restart();
+
+int main(int argc, char const *argv[]) {
+  uint8_t writeBuffer[3] ;
+  size_t i;
+  float a0, a1, a2;
+  // register a signal
+  // here we are testing only for the SIGINT
+  signal(SIGINT, &on_interrupt);
+  signal(SIGTERM, &on_interrupt);
+  wiringPiSetupGpio();
+  pinMode(BTNRESTART_GPIO, INPUT);
+  pullUpDnControl(BTNRESTART_GPIO, PUD_UP); //this button stays by default up
+  wiringPiISR(BTNRESTART_GPIO,INT_EDGE_FALLING, &on_restart);
+
+  // for the buzzer , and the RGB LED here we can setup pins
+  lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
+  lcdPuts(lcd, "Sensing...");
+  // here do some prep calculations for C02 measurement
+  pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
+  pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
+  pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
+
+  float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
+  writeBuffer[0]=1;
+  writeBuffer[1]=0b11000011; //this configuration signifies
+  writeBuffer[2]=0b10000011;
+  float Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
+  float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
+  float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
+  float ppm;
+  while (1) {
+    writeBuffer[0]=1;
+    writeBuffer[1]=0b11000011; //this configuration signifies
+    writeBuffer[2]=0b10000011;
+    Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
+    Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
+    ppm = pow(10,((log10(Rs/Ro)-Y_INTERCEPT)/SLOPE));
+    writeBuffer[0]=1;
+    writeBuffer[1]=0b11010011; //this configuration signifies
+    writeBuffer[2]=0b10000011;
+    a1=read_voltage(writeBuffer);
+    writeBuffer[0]=1;
+    writeBuffer[1]=0b11100011; //this configuration signifies
+    writeBuffer[2]=0b10000011;
+    a2=read_voltage(writeBuffer);
+    display_marquee(a1*100,a2,ppm);
+    indicate_led_buzz(ppm);
+    sleep(LOOP_SLEEP_SECS);
+  }
+  flush_gpio();
+  return 0;
+}
+void on_restart(){
+  // this gets the systemctl service restarted
+  // effectively this service is issuing commands to kill itself
+  static unsigned long lastISRHit = 0;
+  unsigned long currIsrHit = millis();
+  if(currIsrHit-lastISRHit>=500){
+    // to avoid issuing commands in hystersis or fast mode
+    system("sudo systemctl restart co2sensing.service");
+  }
+}
 void display_marquee(float temp, float light, float co2){
   char tempMessage[50], lightMessage[50], co2Message[50];
   sprintf(tempMessage,"T:%.2f L:%.2f",temp, light);
@@ -125,60 +196,7 @@ void flush_gpio(){
   lcdClear(lcd);
   lcdPuts(lcd, "Shutting down..");
 }
-void on_terminate(){
-  flush_gpio();
-}
 void on_interrupt(int signal){
   flush_gpio();
   exit(-1);
-}
-int main(int argc, char const *argv[]) {
-  uint8_t writeBuffer[3] ;
-  size_t i;
-  float a0, a1, a2;
-  // register a signal
-  // here we are testing only for the SIGINT
-  signal(SIGINT, on_interrupt);
-  signal(SIGTERM, on_interrupt);
-  wiringPiSetupGpio();
-  // for the buzzer , and the RGB LED here we can setup pins
-
-  lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
-  printf("Starting conversion .. \n");
-  // here do some prep calculations for C02 measurement
-  pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
-  pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, HIGH);
-  pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
-
-  float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
-  writeBuffer[0]=1;
-  writeBuffer[1]=0b11000011; //this configuration signifies
-  writeBuffer[2]=0b10000011;
-  float Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
-  float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
-  float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
-  float ppm;
-  while (1) {
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11000011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
-    Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
-    ppm = pow(10,((log10(Rs/Ro)-Y_INTERCEPT)/SLOPE));
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11010011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    a1=read_voltage(writeBuffer);
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11100011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    a2=read_voltage(writeBuffer);
-    // printf("%.3f\t\t%.3f\t\t%.3f\n",a0,a1,a2);
-    display_marquee(a1*100,a2,ppm);
-    indicate_led_buzz(ppm);
-    sleep(LOOP_SLEEP_SECS);
-  }
-  on_terminate();
-  printf("We are now shutting down program ..\n");
-  return 0;
 }
