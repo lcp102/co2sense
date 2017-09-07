@@ -19,7 +19,7 @@ run           : ./bin/i2ctest
 #include <string.h>
 #include<signal.h>
 // this is for making system calls via shell
-#include<system.h>
+// #include<system.h>
 
 #define RS 9
 #define E 11
@@ -44,7 +44,6 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 #define RESIS_LOAD 2.5 // in Kohms , is the resistance on RL as measured
 #define LOOP_MAX 3600
 #define LOOP_SLEEP_SECS 2
-#define BTNRESTART_GPIO 21 //on the falling of this GPIO we would want the program to restart
 int lcd;
 void on_interrupt(int signal);
 void flush_gpio();
@@ -62,9 +61,6 @@ int main(int argc, char const *argv[]) {
   signal(SIGINT, &on_interrupt);
   signal(SIGTERM, &on_interrupt);
   wiringPiSetupGpio();
-  pinMode(BTNRESTART_GPIO, INPUT);
-  pullUpDnControl(BTNRESTART_GPIO, PUD_UP); //this button stays by default up
-  wiringPiISR(BTNRESTART_GPIO,INT_EDGE_FALLING, &on_restart);
 
   // for the buzzer , and the RGB LED here we can setup pins
   lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
@@ -107,11 +103,13 @@ int main(int argc, char const *argv[]) {
 void on_restart(){
   // this gets the systemctl service restarted
   // effectively this service is issuing commands to kill itself
+  printf("We have a command to restart the program..\n");
+  sleep(2);
   static unsigned long lastISRHit = 0;
   unsigned long currIsrHit = millis();
   if(currIsrHit-lastISRHit>=500){
     // to avoid issuing commands in hystersis or fast mode
-    system("sudo systemctl restart co2sensing.service");
+    system("sudo systemctl restart co2sensing.service"); //we are just instructing the system to restart
   }
 }
 void display_marquee(float temp, float light, float co2){
