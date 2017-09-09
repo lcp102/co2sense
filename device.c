@@ -192,7 +192,7 @@ void flush_gpio(){
   digitalWrite(RED_GPIO, LOW);
   digitalWrite(BUZZ_GPIO, LOW);
   lcdClear(lcd);
-  lcdPuts(lcd, "Shutting down..");
+  lcdPuts(lcd, "Sleeping ..");
 }
 void on_interrupt(int signal){
   flush_gpio();

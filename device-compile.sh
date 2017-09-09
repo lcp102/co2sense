@@ -9,4 +9,5 @@ sudo systemctl disable co2sensing.service
 sudo systemctl enable co2sensing.upstart.service
 sudo systemctl daemon-reload
 sudo systemctl stop co2sensing.upstart.service
+sudo systemctl stop co2sensing.upstart.service
 sudo systemctl start co2sensing.upstart.service
