@@ -44,6 +44,8 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 #define RESIS_LOAD 2.5 // in Kohms , is the resistance on RL as measured
 #define LOOP_MAX 3600
 #define LOOP_SLEEP_SECS 2
+#define DARK_VOLTS 2.0431
+#define BRIGHT_VOLTS 2.0436
 int lcd;
 void on_interrupt(int signal);
 void flush_gpio();
@@ -55,7 +57,7 @@ void on_restart();
 int main(int argc, char const *argv[]) {
   uint8_t writeBuffer[3] ;
   size_t i;
-  float a0, a1, a2;
+  float a0, a1, lightVolts, lightPercent;
   // register a signal
   // here we are testing only for the SIGINT
   signal(SIGINT, &on_interrupt);
@@ -92,8 +94,10 @@ int main(int argc, char const *argv[]) {
     writeBuffer[0]=1;
     writeBuffer[1]=0b11100011; //this configuration signifies
     writeBuffer[2]=0b10000011;
-    a2=read_voltage(writeBuffer);
-    display_marquee(a1*100,a2,ppm);
+    lightVolts=read_voltage(writeBuffer);
+    // we here need to convert the voltage to an proportionate light brightness reading
+    lightPercent=(BRIGHT_VOLTS- lightVolts) / (BRIGHT_VOLTS-DARK_VOLTS);
+    display_marquee(a1*100,lightPercent,ppm);
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
   }
@@ -114,7 +118,9 @@ void on_restart(){
 }
 void display_marquee(float temp, float light, float co2){
   char tempMessage[50], lightMessage[50], co2Message[50];
-  sprintf(tempMessage,"T:%.2f L:%.2f",temp, light);
+  // this is inline issue 2, we are getting the reading but i guess we are not adjusting to the correct decimal places.
+  // we have now replaced the LDR with a brand new one.
+  sprintf(tempMessage,"T:%.2f L:%.4f",temp, light);
   sprintf(co2Message,"Co2(ppm):%.3f",co2);
   lcdClear(lcd);
   lcdPuts(lcd, tempMessage);
