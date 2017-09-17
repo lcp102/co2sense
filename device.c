@@ -102,6 +102,9 @@ int main(int argc, char const *argv[]) {
     if (lightPercent<0.00) {
       lightPercent=0.00;
     }
+    if (lightPercent>1.00) {
+      lightPercent=1.00;
+    }
     display_marquee(a1*100,lightPercent,ppm);
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
