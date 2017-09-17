@@ -20,6 +20,7 @@ int main(int argc, char const *argv[]) {
   signal(SIGINT, &on_sys_interrupt);
   signal(SIGTERM, &on_sys_interrupt);
   wiringPiSetupGpio();
+  sleep(1);
   pinMode(BTN_ENDSERVICE, INPUT);
   pullUpDnControl(BTN_ENDSERVICE, PUD_UP);
   wiringPiISR(BTN_ENDSERVICE, INT_EDGE_FALLING, &on_btn_interrupt);

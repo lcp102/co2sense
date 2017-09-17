@@ -64,8 +64,8 @@ int main(int argc, char const *argv[]) {
   // here we are testing only for the SIGINT
   signal(SIGINT, &on_interrupt);
   signal(SIGTERM, &on_interrupt);
+  // this is being setup from the upstart service , re setting here woudl lead to some problem
   wiringPiSetupGpio();
-
   // for the buzzer , and the RGB LED here we can setup pins
   lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
   lcdPuts(lcd, "Sensing...");
