@@ -44,8 +44,10 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 #define RESIS_LOAD 2.5 // in Kohms , is the resistance on RL as measured
 #define LOOP_MAX 3600
 #define LOOP_SLEEP_SECS 2
-#define DARK_VOLTS 2.0431
-#define BRIGHT_VOLTS 2.0436
+// these extremeties need to adjusted / calibrated.
+// this needs to be tested on a restart.
+#define DARK_VOLTS 2.042
+#define BRIGHT_VOLTS 2.049
 int lcd;
 void on_interrupt(int signal);
 void flush_gpio();
@@ -96,7 +98,10 @@ int main(int argc, char const *argv[]) {
     writeBuffer[2]=0b10000011;
     lightVolts=read_voltage(writeBuffer);
     // we here need to convert the voltage to an proportionate light brightness reading
-    lightPercent=(BRIGHT_VOLTS- lightVolts) / (BRIGHT_VOLTS-DARK_VOLTS);
+    lightPercent= 1 -((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
+    if (lightPercent<0.00) {
+      lightPercent=0.00;
+    }
     display_marquee(a1*100,lightPercent,ppm);
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
