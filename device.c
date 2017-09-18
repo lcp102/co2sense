@@ -48,13 +48,16 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 // this needs to be tested on a restart.
 #define DARK_VOLTS 2.042
 #define BRIGHT_VOLTS 2.049
+#define BTN_SHUTDOWN 21 //this GPIO button then interrupts everything ad shuts down the entire device
+#define DEBOUNCE 200
 int lcd;
 void on_interrupt(int signal);
-void flush_gpio();
+void prep_hw_shutdown();
 void indicate_led_buzz(float ppm);
 float read_voltage(uint8_t config[]);
 void display_marquee(float temp, float light, float co2);
 void on_restart();
+void on_force_shutdown();
 
 int main(int argc, char const *argv[]) {
   uint8_t writeBuffer[3] ;
@@ -66,14 +69,15 @@ int main(int argc, char const *argv[]) {
   signal(SIGTERM, &on_interrupt);
   // this is being setup from the upstart service , re setting here woudl lead to some problem
   wiringPiSetupGpio();
-  // for the buzzer , and the RGB LED here we can setup pins
   lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
   lcdPuts(lcd, "Sensing...");
-  // here do some prep calculations for C02 measurement
   pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
   pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
   pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
-
+  pinMode(BTN_SHUTDOWN, INPUT);
+  pullUpDnControl(BTN_SHUTDOWN, PUD_UP);
+  wiringPiISR(BTN_SHUTDOWN, INT_EDGE_FALLING, &on_force_shutdown);
+  // here do some prep calculations for C02 measurement
   float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
   writeBuffer[0]=1;
   writeBuffer[1]=0b11000011; //this configuration signifies
@@ -109,7 +113,7 @@ int main(int argc, char const *argv[]) {
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
   }
-  flush_gpio();
+  prep_hw_shutdown();
   return 0;
 }
 void on_restart(){
@@ -201,14 +205,24 @@ void indicate_led_buzz(float ppm){
     if(digitalRead(BUZZ_GPIO)==0){digitalWrite(BUZZ_GPIO, HIGH);}
   }
 }
-void flush_gpio(){
+void prep_hw_shutdown(){
   digitalWrite(BLUE_GPIO, LOW);
   digitalWrite(RED_GPIO, LOW);
   digitalWrite(BUZZ_GPIO, LOW);
   lcdClear(lcd);
-  lcdPuts(lcd, "Sleeping ..");
+  lcdPuts(lcd, "Shutting down..!");
 }
 void on_interrupt(int signal){
-  flush_gpio();
+  prep_hw_shutdown();
   exit(-1);
+}
+void on_force_shutdown(){
+  static unsigned long lastISRTime =0;
+  unsigned long currentISRTime = millis();
+  if(currentISRTime-lastISRTime >DEBOUNCE){
+    prep_hw_shutdown();
+    sleep(3);
+    system("sudo shutdown now");
+  }
+  lastISRTime = currentISRTime;
 }
