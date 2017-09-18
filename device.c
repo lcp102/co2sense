@@ -31,6 +31,8 @@ run           : ./bin/i2ctest
 #define RED_GPIO 17
 #define BLUE_GPIO 27
 #define BUZZ_GPIO 22
+#define BTN_SHUTDOWN 21
+#define BTN_RESET 20
 // refer to https://www.co2.earth/ for knowing the current concentration of C02
 #define CO2_PPM_NOW 407.25
 /* http://www.instructables.com/id/Arduino-Air-Monitor-Shield-Live-in-a-Safe-Environm
@@ -48,7 +50,6 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 // this needs to be tested on a restart.
 #define DARK_VOLTS 2.042
 #define BRIGHT_VOLTS 2.049
-#define BTN_SHUTDOWN 21 //this GPIO button then interrupts everything ad shuts down the entire device
 #define DEBOUNCE 200
 int lcd;
 void on_interrupt(int signal);
@@ -56,8 +57,8 @@ void prep_hw_shutdown();
 void indicate_led_buzz(float ppm);
 float read_voltage(uint8_t config[]);
 void display_marquee(float temp, float light, float co2);
-void on_restart();
 void on_force_shutdown();
+void on_force_reset();
 
 int main(int argc, char const *argv[]) {
   uint8_t writeBuffer[3] ;
@@ -77,6 +78,9 @@ int main(int argc, char const *argv[]) {
   pinMode(BTN_SHUTDOWN, INPUT);
   pullUpDnControl(BTN_SHUTDOWN, PUD_UP);
   wiringPiISR(BTN_SHUTDOWN, INT_EDGE_FALLING, &on_force_shutdown);
+  pinMode(BTN_RESET, INPUT);
+  pullUpDnControl(BTN_RESET, PUD_UP);
+  wiringPiISR(BTN_RESET, INT_EDGE_FALLING, &on_force_reset);
   // here do some prep calculations for C02 measurement
   float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
   writeBuffer[0]=1;
@@ -115,18 +119,6 @@ int main(int argc, char const *argv[]) {
   }
   prep_hw_shutdown();
   return 0;
-}
-void on_restart(){
-  // this gets the systemctl service restarted
-  // effectively this service is issuing commands to kill itself
-  printf("We have a command to restart the program..\n");
-  sleep(2);
-  static unsigned long lastISRHit = 0;
-  unsigned long currIsrHit = millis();
-  if(currIsrHit-lastISRHit>=500){
-    // to avoid issuing commands in hystersis or fast mode
-    system("sudo systemctl restart co2sensing.service"); //we are just instructing the system to restart
-  }
 }
 void display_marquee(float temp, float light, float co2){
   char tempMessage[50], lightMessage[50], co2Message[50];
@@ -202,7 +194,11 @@ void indicate_led_buzz(float ppm){
     // the light is red, buzzer is on
     if(digitalRead(BLUE_GPIO) ==1){digitalWrite(BLUE_GPIO, LOW);}
     if(digitalRead(RED_GPIO)==0){digitalWrite(RED_GPIO, HIGH);}
-    if(digitalRead(BUZZ_GPIO)==0){digitalWrite(BUZZ_GPIO, HIGH);}
+    if(digitalRead(BUZZ_GPIO)==0){
+      digitalWrite(BUZZ_GPIO, HIGH);
+      sleep(2);
+      digitalWrite(BUZZ_GPIO, LOW);
+    }
   }
 }
 void prep_hw_shutdown(){
@@ -211,6 +207,7 @@ void prep_hw_shutdown(){
   digitalWrite(BUZZ_GPIO, LOW);
   lcdClear(lcd);
   lcdPuts(lcd, "Shutting down..!");
+  lcdClear(lcd);
 }
 void on_interrupt(int signal){
   prep_hw_shutdown();
@@ -221,8 +218,18 @@ void on_force_shutdown(){
   unsigned long currentISRTime = millis();
   if(currentISRTime-lastISRTime >DEBOUNCE){
     prep_hw_shutdown();
-    sleep(3);
+    sleep(2);
     system("sudo shutdown now");
+  }
+  lastISRTime = currentISRTime;
+}
+void on_force_reset(){
+  static unsigned long lastISRTime =0;
+  unsigned long currentISRTime = millis();
+  if(currentISRTime-lastISRTime >DEBOUNCE){
+    prep_hw_shutdown();
+    sleep(2);
+    system("sudo systemctl restart co2sensing.service");
   }
   lastISRTime = currentISRTime;
 }
