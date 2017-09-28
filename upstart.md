@@ -12,7 +12,9 @@ Getting the desired program run at the start as a `systemd` service instantly ge
 Pi would mostly fire systems that run infinite loops of sensing at regular intervals. -Atleast mojority of the projects that I worked on have this chracteristic. Upstarting services on `initd` can be tricky if they are blocking and are spawned at the wrong time. While `systemd` does not have sequential nature of upstarting, you can breathe a sigh of relief knowing the Raspbian Jessie uses `systemd`.
 
 But for an one-off case here is how you can still mess up your Pi
+
 **Don't try the steps below, this may lead to Pi being inaccessible over the network and hungup on the boot !!**
+
 ```bash
 $ cat /etc/systemd/system/some.service
 [Unit]
@@ -30,3 +32,7 @@ $ sudo shutdown -r now
 If you working from your laboratory and have setup ssh connections to your Pi, you have messed up you Pi. You will find you are unable to get into ssh - as it keeps timing out. You can try connecting a monitor, keyboard, mouse to the Pi. and see if you can access the terminal. But if not, time to flash the SD card and reload raspbian.
 
 #### Making forking services with infinite loops
+
+`systemd` was a graduation from `initd` and the significant change that we have here is that upstarted services are spawned asynchronously with none of them blocking the entire stack of services. `Type=simple` is the one that you should be choosing , instead of the notorious `forking`. Forking indicates it is a legacy service and the system then handsover the responsibility to the code to be asynchrounous. If not the system just hangs out!
+
+One also has to be careful of run levels `WantedBy=multi-user.target`. To be on the safer side you can choose a level that is lower in order something like `WantedBy=graphical.target`.  This ensures all the network services including the ssh is cranked up and in an eventuality you atleast have a window to get inside the Pi to stop the faltering service.
