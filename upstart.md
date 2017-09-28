@@ -12,9 +12,9 @@ Getting the desired program run at the start as a `systemd` service instantly ge
 Pi would mostly fire systems that run infinite loops of sensing at regular intervals. -Atleast mojority of the projects that I worked on have this chracteristic. Upstarting services on `initd` can be tricky if they are blocking and are spawned at the wrong time. While `systemd` does not have sequential nature of upstarting, you can breathe a sigh of relief knowing the Raspbian Jessie uses `systemd`.
 
 But for an one-off case here is how you can still mess up your Pi
-
+**Don't try the steps below, this may lead to Pi being inaccessible over the network and hungup on the boot !!**
 ```bash
-# in /etc/systemd/system/some.service
+$ cat /etc/systemd/system/some.service
 [Unit]
 Description=This is to test a service that runs an infinite loop but also has restart interrupt
 [Service]
@@ -25,5 +25,8 @@ WantedBy=multi-user.target
 
 $ sudo systemctl enable some.service
 $ sudo systemctl daemon-reload
+$ sudo shutdown -r now
 ```
-If you working from your laboratory and have setup ssh connections to your Pi, in short- you have messed up you Pi. You will find you are unable to get into ssh - as it keeps timing out. 
+If you working from your laboratory and have setup ssh connections to your Pi, you have messed up you Pi. You will find you are unable to get into ssh - as it keeps timing out. You can try connecting a monitor, keyboard, mouse to the Pi. and see if you can access the terminal. But if not, time to flash the SD card and reload raspbian.
+
+#### Making forking services with infinite loops
