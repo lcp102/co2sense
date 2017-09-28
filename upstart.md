@@ -33,7 +33,14 @@ $ sudo shutdown -r now
 ```
 If you working from your laboratory and have setup ssh connections to your Pi, you have messed up you Pi!!
 
-You will find you are unable to get into ssh - as it keeps timing out. You can try connecting a monitor, keyboard, mouse to the Pi to see if you can access the terminal. But if not, **time to flash the SD card and reload raspbian**.
+You will find you are unable to get into ssh - as it keeps timing out. As a last resort, you can try connecting a monitor, keyboard, mouse to the Pi to see if you can access the terminal. But if not, **time to flash the SD card and reload raspbian**.
+
+But if you are one of those lucky guys who have access to the terminal despite the ssh not working, here is what you can instantly do to salvage the Pi.
+
+```bash
+$ sudo systemctl disable some.service
+$ sudo shutdown -r now
+```
 
 #### Replacing forking services with simple services that run inifinite loops :
 
