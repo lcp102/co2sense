@@ -6,24 +6,26 @@
 
 <img src="blog1.png" alt="Our problem at hand" class="inline"/>
 
-I had to, on multiple occassions carry a VGA / HD screen alongside a keyboard that can be attached to the Pi. Demos required at the workplace required me to carry the entire working prototype to locations at my work-campus. This was even more cumbersome when the number of discrete electronics on the bread board started piling up. On each of occassions I had to connect the monitor , keyboard and manually start the program on the Pi and then speak about it.
+I had to, on multiple occassions carry a VGA / HD screen alongside a keyboard that can be attached to the Pi. Demos required at the workplace required me to carry the entire working prototype to locations at my work-campus. This was even more cumbersome when the number of discrete electronics on the bread board started piling up. On each of occassions I had to connect the monitor , keyboard and manually start the program on the Pi , followed by a talk on it.
 
-I kept wishing for a better way to do this. While I knew there had to be a professional way to get around this , just did not know **how?**. What's amusing - Despite being aware of `systemd` upstarting service units on Linux , I never had thought of applying them to this effect.
+While I knew there had to be a professional way to get around this , just did not know **how?**. What's amusing - Despite being aware of `systemd` upstarting service units on Linux , I never had thought of applying them to this effect.
 
 > When you are into an idea , one tends to miss out on the width of the subject matter. Only when you have satisfactory results would you then try experiments with other moving parts.
 
-I was perhaps so held up with getting correct values from the sensor , this just conveniently slipped me.
+I was perhaps so held up with getting correct values from the sensor, this just conveniently slipped me.
 
-### Upstarting services
+### Upstarting services to the rescue:
 ****
 
-Getting the desired program run at the start as a `systemd` unit instantly gets rid of the need to carry around the peripherals. One can turn on the Pi and expect things to crank up just as desired.Pi would mostly fire-up servics that run infinite loops of sensing at regular intervals.  
+Getting the desired program run at the start as a `systemd` unit instantly gets rid of the need to carry around the peripherals. One can turn on the Pi and expect things to crank up just as desired.Pi would then fire-up servics that run infinite loops of sensing at regular intervals.  
 
-Majority of the projects that I worked on have this chracteristic.
+Making upstarters is not a daunting task at all , but you have to realise that we have options of 2 systems that work during the boot to get the services started.
 
-`initd` on the flipside can be tricky since units are blocking, and if are spawned at the wrong time.
+1. initd (legacy)
+2. systemd (contemporary)
 
-While `systemd` does not have sequential nature of upstarting, you can breathe a sigh of relief knowing the Raspbian Jessie uses `systemd`.But for an one-off case here is how you can still mess up your Pi working on `systemd` itself.
+`initd` on the one side can be tricky since units are blocking / serial, and if are spawned at the wrong time they can put your Pi's boot process into a permanent "hang".
+While `systemd` is inherently parallel, you can breathe a sigh of relief knowing the Raspbian Jessie uses `systemd`.For an one-off case still, here is how you can mess up your Pi working on `systemd` itself.
 
 **Don't try the steps below, this may lead to Pi being inaccessible over the network and hungup on the boot ! Leaving you no choice but to flash the SD card and reload evrything again.**
 
@@ -188,4 +190,4 @@ For brevity sake I would not enlist the sensing loop here. All what you need is 
 #### Contact
 ****
 
-[kneerunjun](kneerunjun@gmail.com) is a IoT device programmer and a tinkerer.He has programmed on Rpi extensively for building small scale cloud connected solutions. When he is not programming he is a evangelist on web development technologies.
+[kneerunjun](mailto:kneerunjun@gmail.com) is a IoT device programmer and a tinkerer.He has programmed on Rpi extensively for building small scale cloud connected solutions. When he is not programming he is a evangelist on web development technologies.
