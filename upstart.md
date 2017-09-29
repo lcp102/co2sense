@@ -132,6 +132,16 @@ int main(int argc, char const *argv[]) {
 }
 
 ```
+We need the diagramatic illustration of the above process forking.
+
+Whats interesting is to note what happens when you have `fork()`ed the process.
+
+- It creates a duplicate copy of the process from where `fork()` was being called
+- All the state - stack variables and the shared variables are copied into this new process.
+- Process Id from within the newly created child process is 0 while the actual processId of the child as seen from the parent is non zero positive integer. - That is ofcourse when the forking has been successful.
+- `execv()` is from inside the child process
+- `waitpid()` is from the parent process. It suspends the parent process till the state of the child is changed.
+- `kill()` in the parent process then takes the Id of the child and sends in the `SIGTERM` signal indicating it to quit ASAP. 
 
 And here is how the systemd unit looks like
 
