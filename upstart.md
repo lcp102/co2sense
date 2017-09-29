@@ -141,7 +141,7 @@ Whats interesting is to note what happens when you have `fork()`ed the process.
 - Process Id from within the newly created child process is 0 while the actual processId of the child as seen from the parent is non zero positive integer. - That is ofcourse when the forking has been successful.
 - `execv()` is from inside the child process
 - `waitpid()` is from the parent process. It suspends the parent process till the state of the child is changed.
-- `kill()` in the parent process then takes the Id of the child and sends in the `SIGTERM` signal indicating it to quit ASAP. 
+- `kill()` in the parent process then takes the Id of the child and sends in the `SIGTERM` signal indicating it to quit ASAP.
 
 And here is how the systemd unit looks like
 
@@ -153,4 +153,10 @@ Type=simple
 ExecStart=/path/to/the/execuable/above
 [Install]
 WantedBy=graphical.target
+```
+
+```bash
+$ sudo systemctl enable governor.service
+$ sudo systemctl daemon-reload
+$ sudo systemctl start governor.service
 ```
