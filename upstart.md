@@ -121,7 +121,7 @@ int main(int argc, char const *argv[]) {
     }
   }
   else{
-    /*this is in the main process that spawns the child procss*/ 
+    /*this is in the main process that spawns the child procss*/
     int status;
     waitpid(pid, &status, 0);
     printf("The looping process is called off.. ");
