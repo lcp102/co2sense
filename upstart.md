@@ -68,3 +68,67 @@ I prefer to have 2 hadware push buttons on the GPIO mapping to
 This lets me drop off the peripherals that I mentioned above from the demo setup outside the laboratory.
 
 #### Constructing the governor service :
+
+```c
+#include <stdlib.h>
+#include <stdio.h>
+#include <wiringPi.h>
+#include <signal.h>
+#include <lcd.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#define RESTART_GPIO 21
+#define DEBOUNCE 200 //falling GPIO debounce time ..
+pid_t pid;
+/*This clears up the child process (looping sensing process ) when we have the user press the button*/
+void on_force_restart(){
+  // this service just restarts itself
+  static unsigned long lastHit = 0;
+  unsigned long latestHit  = millis();
+  if(latestHit -lastHit > DEBOUNCE){
+    printf("Restarting the service..\n");
+    kill(pid, SIGTERM); //back to to waitpid call
+  }
+  lastHit = latestHit;
+}
+void upon_terminate(int sig){
+  printf("Parent service is being shutdown..");
+  kill(pid, SIGTERM); // we are sending this back to the waitpid call.
+  sleep(1);
+  exit(0);
+}
+int main(int argc, char const *argv[]) {
+  signal(SIGINT, upon_terminate);
+  signal(SIGTERM, upon_terminate);
+  signal(SIGKILL, upon_terminate);
+  wiringPiSetupGpio();
+  pinMode(RESTART_GPIO, INPUT);
+  pullUpDnControl(RESTART_GPIO, PUD_UP);
+  wiringPiISR(RESTART_GPIO,INT_EDGE_FALLING, &on_force_restart);
+  pid  = fork();
+  if (pid ==0 ) {
+    /*This is in the duplicate child process */
+    static char *argv[]={};
+    if ((execv("./looping",argv))==-1) {
+      /* incase its a service then it would not work from the relative directory*/
+      if ((execv("/home/pi/src/looping/looping",argv))==-1){
+        perror("Failed to start the looping process");
+        exit(127);
+      }
+    }
+  }
+  else{
+    /*this is in the main process that spawns the child procss*/ 
+    int status;
+    waitpid(pid, &status, 0);
+    printf("The looping process is called off.. ");
+    sleep(3);
+    printf("Now shutting down..");
+  }
+  return 0;
+}
+
+```
