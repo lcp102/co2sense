@@ -94,6 +94,7 @@ void on_force_restart(){
   }
   lastHit = latestHit;
 }
+/*this is when the parent process itself is forced terminated*/
 void upon_terminate(int sig){
   printf("Parent service is being shutdown..");
   kill(pid, SIGTERM); // we are sending this back to the waitpid call.
@@ -104,14 +105,18 @@ int main(int argc, char const *argv[]) {
   signal(SIGINT, upon_terminate);
   signal(SIGTERM, upon_terminate);
   signal(SIGKILL, upon_terminate);
+  /*this sets up the GPIO on Pi*/
   wiringPiSetupGpio();
   pinMode(RESTART_GPIO, INPUT);
   pullUpDnControl(RESTART_GPIO, PUD_UP);
+  /*refer to wiringPi documentation to know more how to catch interrupts from the buttons*/
+  /*http://wiringpi.com/reference/priority-interrupts-and-threads/*/
   wiringPiISR(RESTART_GPIO,INT_EDGE_FALLING, &on_force_restart);
-  pid  = fork();
+  pid  = fork(); /*refer : http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html*/
   if (pid ==0 ) {
-    /*This is in the duplicate child process */
+    /*This is in the duplicate child process we are trying to crank up the sensing loop */
     static char *argv[]={};
+    /*execv would replace the child process with the running sensing loop*/
     if ((execv("./looping",argv))==-1) {
       /* incase its a service then it would not work from the relative directory*/
       if ((execv("/home/pi/src/looping/looping",argv))==-1){
