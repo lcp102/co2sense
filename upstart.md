@@ -2,6 +2,7 @@
 ****
 
 ### The pain of carrying Pi peripherals.
+****
 
 <img src="blog1.png" alt="hi" class="inline"/>
 
@@ -14,6 +15,7 @@ I kept wishing for a better way to do this. While I knew there had to be a profe
 I was perhaps so held up with getting correct values from the sensor , this just conveniently slipped me.
 
 ### Upstarting services
+****
 
 Getting the desired program run at the start as a `systemd` unit instantly gets rid of the need to carry around the peripherals. One can turn on the Pi and expect things to crank up just as desired.Pi would mostly fire-up servics that run infinite loops of sensing at regular intervals.  
 
@@ -53,12 +55,14 @@ $ sudo shutdown -r now
 ```
 
 #### Replacing forking services with simple services that run inifinite loops with desired safe run levels:
+****
 
 `systemd` was a graduation from `initd` and the significant change that we have here is that upstarted services are spawned asynchronously with none of them blocking the entire stack of services. `Type=simple` is the one that you should be choosing , instead of the notorious `forking`. Forking indicates it is a legacy service and the system then handsover the responsibility to the code to be asynchrounous. If not the system just hangs up!
 
 One also has to be careful of run levels: `WantedBy=multi-user.target`. To be on the safer side you can choose a level that is lower in order something like `WantedBy=graphical.target`.  This ensures all the network services including the ssh is cranked up before the service you are trying to spawn. In an accident you atleast have a window to get inside the Pi to stop the faltering service.
 
 #### Schema of services :
+****
 
 I would suggest you to have a service that acts as a "governor" that deals with restart and safe shutdown. In turn spaws out a "loop" that senses. Effectively we are dealing with 2 executables. One for the continuous loop that senses, would be the child of the governor process that deals with user commands.
 
@@ -70,7 +74,7 @@ I prefer to have 2 hadware push buttons on the GPIO mapping to
 This lets me drop off the peripherals that I mentioned above from the demo setup outside the laboratory.
 
 #### Constructing the governor service :
-
+****
 ```c
 #include <stdlib.h>
 #include <stdio.h>
@@ -169,10 +173,12 @@ $ sudo systemctl start governor.service
 ```
 
 #### The sensing loop :
-
+****
 For brevity sake I would not enlist the sensing loop here. All what you need is some GPIO operations that are running inside a infinite loop. This is the child process that gets spwaned from the main service.
 
-References
-https://thenounproject.com/
-http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html
-http://wiringpi.com/reference/priority-interrupts-and-threads/
+#### References
+****
+[1](https://thenounproject.com/) : The noun project
+[2](http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html) : About forking processes and waitpid on Linux
+[3](http://wiringpi.com/reference/priority-interrupts-and-threads/) : About WiringPi and programming for interrupts
+[4](https://www.tecmint.com/systemd-replaces-init-in-linux/) : About systemd and differences to initd
