@@ -1,49 +1,54 @@
 ### The pain of carrying Pi peripherals.
 
-I had to, on multiple occassions carry a VGA / HD screen alongside a keyboard that can be attached to the Pi. Demos required at the workplace required me to carry the entire working prototype to locations at my work-campus. This started becoming even more cumbersome when the number of discrete electronics on the bread board started piling up. On each of occassions I have had to connect the monitor , keyboard and manually start the program on the Pi and then speak about it.
+I had to, on multiple occassions carry a VGA / HD screen alongside a keyboard that can be attached to the Pi. Demos required at the workplace required me to carry the entire working prototype to locations at my work-campus. This was even more cumbersome when the number of discrete electronics on the bread board started piling up. On each of occassions I had to connect the monitor , keyboard and manually start the program on the Pi and then speak about it.
 
-I kept wishing for a better way to do this. While I knew there had to be a professional way to get around this , just did not know **how?**. What's funnier , I was always aware of upstarting Linux services on `systemd` , I never thought of applying the same.
+I kept wishing for a better way to do this. While I knew there had to be a professional way to get around this , just did not know **how?**. What's amusing - Despite being aware of `systemd` upstarting service units on Linux , I never had thought of applying them to this effect.
 
 > When you are into an idea , one tends to miss out on the width of the subject matter. Only when you have satisfactory results would you then try experiments with other moving parts.
 
+I was perhaps so held up with getting correct values from the sensor , this just conveniently slipped me.
+
 ### Upstarting services
 
-Getting the desired program run at the start as a `systemd` service instantly gets rid of the need to carry around the peripherals. One can turn on the Pi and expect things to crank up just as desired.
-Pi would mostly fire-up servics that run infinite loops of sensing at regular intervals. -atleast mojority of the projects that I worked on have this chracteristic.
+Getting the desired program run at the start as a `systemd` unit instantly gets rid of the need to carry around the peripherals. One can turn on the Pi and expect things to crank up just as desired.Pi would mostly fire-up servics that run infinite loops of sensing at regular intervals.  
 
-Upstarting services on `initd` can be tricky if they are blocking and are spawned at the wrong time. While `systemd` does not have sequential nature of upstarting, you can breathe a sigh of relief knowing the Raspbian Jessie uses `systemd`.
+Majority of the projects that I worked on have this chracteristic.
 
-But for an one-off case here is how you can still mess up your Pi
+`initd` on the flipside can be tricky since units are blocking, and if are spawned at the wrong time.
 
-**Don't try the steps below, this may lead to Pi being inaccessible over the network and hungup on the boot !!**
+While `systemd` does not have sequential nature of upstarting, you can breathe a sigh of relief knowing the Raspbian Jessie uses `systemd`.But for an one-off case here is how you can still mess up your Pi working on `systemd` itself.
+
+**Don't try the steps below, this may lead to Pi being inaccessible over the network and hungup on the boot ! Leaving you no choice but to flash the SD card and reload evrything again.**
 
 ```bash
 $ cat /etc/systemd/system/some.service
 [Unit]
-Description=This is to test a service that runs an infinite loop but also has restart interrupt
+Description=This is to test a service that runs an infinite loop of sensing.
 [Service]
+#this is where it goes seriously wrong.
 Type=forking
 ExecStart=path/to/exectuable
 [Install]
 WantedBy=multi-user.target
-
+# and the following commands to enable and start the service
 $ sudo systemctl enable some.service
 $ sudo systemctl daemon-reload
 $ sudo shutdown -r now
+
+# ..Pi restarts but is hung up !
 ```
-If you working from your laboratory and have setup ssh connections to your Pi, you have messed up you Pi!!
+If you working from your laboratory and have setup ssh connections to your Pi, you would find you are unable to get into the Pi. The forking service is busy doing its sensing loop and occupies almost the entire processing power.As a last resort, you can try connecting a monitor, keyboard, mouse to the Pi to see if you can access the terminal. But if not, **time to flash the SD card and reload Raspbian**.
 
-You will find you are unable to get into ssh - as it keeps timing out. As a last resort, you can try connecting a monitor, keyboard, mouse to the Pi to see if you can access the terminal. But if not, **time to flash the SD card and reload raspbian**.
-
-But if you are one of those lucky guys who have access to the terminal despite the ssh not working, here is what you can instantly do to salvage the Pi.
+If you are one of those lucky guys who still have access to the terminal despite the ssh not working, here is what you can instantly do to salvage the Pi.
 
 ```bash
+# the emergency rescue
 $ sudo systemctl disable some.service
 $ sudo shutdown -r now
 ```
 
-#### Replacing forking services with simple services that run inifinite loops :
+#### Replacing forking services with simple services that run inifinite loops with desired safe run levels:
 
-`systemd` was a graduation from `initd` and the significant change that we have here is that upstarted services are spawned asynchronously with none of them blocking the entire stack of services. `Type=simple` is the one that you should be choosing , instead of the notorious `forking`. Forking indicates it is a legacy service and the system then handsover the responsibility to the code to be asynchrounous. If not the system just hangs out!
+`systemd` was a graduation from `initd` and the significant change that we have here is that upstarted services are spawned asynchronously with none of them blocking the entire stack of services. `Type=simple` is the one that you should be choosing , instead of the notorious `forking`. Forking indicates it is a legacy service and the system then handsover the responsibility to the code to be asynchrounous. If not the system just hangs up!
 
-One also has to be careful of run levels `WantedBy=multi-user.target`. To be on the safer side you can choose a level that is lower in order something like `WantedBy=graphical.target`.  This ensures all the network services including the ssh is cranked up and in an eventuality you atleast have a window to get inside the Pi to stop the faltering service.
+One also has to be careful of run levels: `WantedBy=multi-user.target`. To be on the safer side you can choose a level that is lower in order something like `WantedBy=graphical.target`.  This ensures all the network services including the ssh is cranked up before the service you are trying to spawn. In an accident you atleast have a window to get inside the Pi to stop the faltering service.
