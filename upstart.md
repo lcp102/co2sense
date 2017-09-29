@@ -165,3 +165,7 @@ $ sudo systemctl enable governor.service
 $ sudo systemctl daemon-reload
 $ sudo systemctl start governor.service
 ```
+
+#### The sensing loop :
+
+For brevity sake I would not enlist the sensing loop here. All what you need is some GPIO operations that are running inside a infinite loop. This is the child process that gets spwaned from the main service.
