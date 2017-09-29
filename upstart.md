@@ -132,3 +132,15 @@ int main(int argc, char const *argv[]) {
 }
 
 ```
+
+And here is how the systemd unit looks like
+
+```
+[Unit]
+Description=This cranks up the governor service
+[Service]
+Type=simple
+ExecStart=/path/to/the/execuable/above
+[Install]
+WantedBy=graphical.target
+```
