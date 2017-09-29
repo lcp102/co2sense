@@ -3,6 +3,8 @@
 
 ### The pain of carrying Pi peripherals.
 
+![Pi and its peripherals](https://github.com/PiFarm/co2sense/blob/gh-pages/blog1.png)
+
 I had to, on multiple occassions carry a VGA / HD screen alongside a keyboard that can be attached to the Pi. Demos required at the workplace required me to carry the entire working prototype to locations at my work-campus. This was even more cumbersome when the number of discrete electronics on the bread board started piling up. On each of occassions I had to connect the monitor , keyboard and manually start the program on the Pi and then speak about it.
 
 I kept wishing for a better way to do this. While I knew there had to be a professional way to get around this , just did not know **how?**. What's amusing - Despite being aware of `systemd` upstarting service units on Linux , I never had thought of applying them to this effect.
@@ -110,9 +112,9 @@ int main(int argc, char const *argv[]) {
   pinMode(RESTART_GPIO, INPUT);
   pullUpDnControl(RESTART_GPIO, PUD_UP);
   /*refer to wiringPi documentation to know more how to catch interrupts from the buttons*/
-  /*http://wiringpi.com/reference/priority-interrupts-and-threads/*/
+  /**/
   wiringPiISR(RESTART_GPIO,INT_EDGE_FALLING, &on_force_restart);
-  pid  = fork(); /*refer : http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html*/
+  pid  = fork(); /*refer : */
   if (pid ==0 ) {
     /*This is in the duplicate child process we are trying to crank up the sensing loop */
     static char *argv[]={};
@@ -172,3 +174,5 @@ For brevity sake I would not enlist the sensing loop here. All what you need is 
 
 References
 https://thenounproject.com/
+http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html
+http://wiringpi.com/reference/priority-interrupts-and-threads/
