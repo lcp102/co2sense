@@ -3,7 +3,7 @@
 
 ### The pain of carrying Pi peripherals.
 
-![Pi and its peripherals](https://github.com/PiFarm/co2sense/blob/gh-pages/blog1.png)
+<img src="https://github.com/PiFarm/co2sense/blob/gh-pages/blog1.png" alt="hi" class="inline"/>
 
 I had to, on multiple occassions carry a VGA / HD screen alongside a keyboard that can be attached to the Pi. Demos required at the workplace required me to carry the entire working prototype to locations at my work-campus. This was even more cumbersome when the number of discrete electronics on the bread board started piling up. On each of occassions I had to connect the monitor , keyboard and manually start the program on the Pi and then speak about it.
 
