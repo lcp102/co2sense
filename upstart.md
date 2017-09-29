@@ -178,7 +178,7 @@ For brevity sake I would not enlist the sensing loop here. All what you need is 
 
 #### References
 ****
-[1](https://thenounproject.com/) : The noun project
-[2](http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html) : About forking processes and waitpid on Linux
-[3](http://wiringpi.com/reference/priority-interrupts-and-threads/) : About WiringPi and programming for interrupts
-[4](https://www.tecmint.com/systemd-replaces-init-in-linux/) : About systemd and differences to initd
+- [1](https://thenounproject.com/) : The noun project
+- [2](http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html) : About forking processes and waitpid on Linux
+- [3](http://wiringpi.com/reference/priority-interrupts-and-threads/) : About WiringPi and programming for interrupts
+- [4](https://www.tecmint.com/systemd-replaces-init-in-linux/) : About systemd and differences to initd
