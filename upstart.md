@@ -59,16 +59,14 @@ $ sudo shutdown -r now
 #### Replacing forking services with simple services that run inifinite loops with desired safe run levels:
 ****
 
-`systemd` was a graduation from `initd` and the significant change that we have here is that upstarted services are spawned asynchronously with none of them blocking the entire stack of services. `Type=simple` is the one that you should be choosing , instead of the notorious `forking`. Forking indicates it is a legacy service and the system then handsover the responsibility to the code to be asynchrounous. If not the system just hangs up!
+`systemd` was a graduation from `initd` and the significant change is that upstarted services are spawned asynchronously / parallel with none of them blocking the boot at any time. `Type=simple` is the one that you should be choosing , instead of the notorious `forking`. Forking indicates it is a legacy service and the system then hands over the responsibility to the code to be asynchrounous. If not the system just hangs up!
 
 One also has to be careful of run levels: `WantedBy=multi-user.target`. To be on the safer side you can choose a level that is lower in order something like `WantedBy=graphical.target`.  This ensures all the network services including the ssh is cranked up before the service you are trying to spawn. In an accident you atleast have a window to get inside the Pi to stop the faltering service.
 
 #### Schema of services :
 ****
 
-![Forking and waitpid in Linux](blog2.png)
-
-I would suggest you to have a service that acts as a "governor" that deals with restart and safe shutdown. In turn spaws out a "loop" that senses. Effectively we are dealing with 2 executables. One for the continuous loop that senses, would be the child of the governor process that deals with user commands.
+I would suggest you to have a service that acts as a "governor" that deals with restart and safe shutdown. In turn spaws out a "loop" that senses. Effectively we are dealing with **2 executables**. One for the continuous loop that senses, would be the child of the governor process that deals with user commands.
 
 I prefer to have 2 hadware push buttons on the GPIO mapping to
 
@@ -147,7 +145,7 @@ int main(int argc, char const *argv[]) {
 }
 
 ```
-We need the diagramatic illustration of the above process forking.
+![Forking and waitpid in Linux](blog2.png)
 
 Whats interesting is to note what happens when you have `fork()`ed the process.
 
