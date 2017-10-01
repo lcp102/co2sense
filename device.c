@@ -18,8 +18,6 @@ run           : ./bin/i2ctest
 #include<lcd.h>
 #include <string.h>
 #include<signal.h>
-// this is for making system calls via shell
-// #include<system.h>
 
 #define RS 9
 #define E 11
@@ -51,74 +49,16 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 #define DARK_VOLTS 2.042
 #define BRIGHT_VOLTS 2.049
 #define DEBOUNCE 200
-int lcd;
-void on_interrupt(int signal);
-void prep_hw_shutdown();
-void indicate_led_buzz(float ppm);
-float read_voltage(uint8_t config[]);
-void display_marquee(float temp, float light, float co2);
-void on_force_shutdown();
-void on_force_reset();
+int lcd; //pointer for the lcd object
 
-int main(int argc, char const *argv[]) {
-  uint8_t writeBuffer[3] ;
-  size_t i;
-  float a0, a1, lightVolts, lightPercent;
-  // register a signal
-  // here we are testing only for the SIGINT
-  signal(SIGINT, &on_interrupt);
-  signal(SIGTERM, &on_interrupt);
-  // this is being setup from the upstart service , re setting here woudl lead to some problem
-  wiringPiSetupGpio();
-  lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
-  lcdPuts(lcd, "Sensing...");
-  pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
-  pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
-  pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
-  pinMode(BTN_SHUTDOWN, INPUT);
-  pullUpDnControl(BTN_SHUTDOWN, PUD_UP);
-  wiringPiISR(BTN_SHUTDOWN, INT_EDGE_FALLING, &on_force_shutdown);
-  pinMode(BTN_RESET, INPUT);
-  pullUpDnControl(BTN_RESET, PUD_UP);
-  wiringPiISR(BTN_RESET, INT_EDGE_FALLING, &on_force_reset);
-  // here do some prep calculations for C02 measurement
-  float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
-  writeBuffer[0]=1;
-  writeBuffer[1]=0b11000011; //this configuration signifies
-  writeBuffer[2]=0b10000011;
-  float Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
-  float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
-  float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
-  float ppm;
-  while (1) {
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11000011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
-    Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
-    ppm = pow(10,((log10(Rs/Ro)-Y_INTERCEPT)/SLOPE));
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11010011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    a1=read_voltage(writeBuffer);
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11100011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    lightVolts=read_voltage(writeBuffer);
-    // we here need to convert the voltage to an proportionate light brightness reading
-    lightPercent= 1 -((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
-    if (lightPercent<0.00) {
-      lightPercent=0.00;
-    }
-    if (lightPercent>1.00) {
-      lightPercent=1.00;
-    }
-    display_marquee(a1*100,lightPercent,ppm);
-    indicate_led_buzz(ppm);
-    sleep(LOOP_SLEEP_SECS);
-  }
-  prep_hw_shutdown();
-  return 0;
+void on_interrupt(int signal){
+  digitalWrite(BLUE_GPIO, LOW);
+  digitalWrite(RED_GPIO, LOW);
+  digitalWrite(BUZZ_GPIO, LOW);
+  lcdClear(lcd);
+  lcdPuts(lcd, "Shutting down..!");
+  lcdClear(lcd);
+  exit(0);
 }
 void display_marquee(float temp, float light, float co2){
   char tempMessage[50], lightMessage[50], co2Message[50];
@@ -201,35 +141,63 @@ void indicate_led_buzz(float ppm){
     }
   }
 }
-void prep_hw_shutdown(){
-  digitalWrite(BLUE_GPIO, LOW);
-  digitalWrite(RED_GPIO, LOW);
-  digitalWrite(BUZZ_GPIO, LOW);
-  lcdClear(lcd);
-  lcdPuts(lcd, "Shutting down..!");
-  lcdClear(lcd);
-}
-void on_interrupt(int signal){
+int main(int argc, char const *argv[]) {
+  uint8_t writeBuffer[3] ;
+  size_t i;
+  float a0, a1, lightVolts, lightPercent;
+  // register a signal
+  // here we are testing only for the SIGINT
+  signal(SIGINT, &on_interrupt);
+  signal(SIGTERM, &on_interrupt);
+  // this is being setup from the upstart service , re setting here woudl lead to some problem
+  wiringPiSetupGpio();
+  lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
+  lcdPuts(lcd, "Sensing...");
+  pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
+  pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
+  pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
+  pinMode(BTN_SHUTDOWN, INPUT);
+  pullUpDnControl(BTN_SHUTDOWN, PUD_UP);
+  wiringPiISR(BTN_SHUTDOWN, INT_EDGE_FALLING, &on_force_shutdown);
+  pinMode(BTN_RESET, INPUT);
+  pullUpDnControl(BTN_RESET, PUD_UP);
+  wiringPiISR(BTN_RESET, INT_EDGE_FALLING, &on_force_reset);
+  // here do some prep calculations for C02 measurement
+  float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
+  writeBuffer[0]=1;
+  writeBuffer[1]=0b11000011; //this configuration signifies
+  writeBuffer[2]=0b10000011;
+  float Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
+  float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
+  float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
+  float ppm;
+  while (1) {
+    writeBuffer[0]=1;
+    writeBuffer[1]=0b11000011; //this configuration signifies
+    writeBuffer[2]=0b10000011;
+    Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
+    Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
+    ppm = pow(10,((log10(Rs/Ro)-Y_INTERCEPT)/SLOPE));
+    writeBuffer[0]=1;
+    writeBuffer[1]=0b11010011; //this configuration signifies
+    writeBuffer[2]=0b10000011;
+    a1=read_voltage(writeBuffer);
+    writeBuffer[0]=1;
+    writeBuffer[1]=0b11100011; //this configuration signifies
+    writeBuffer[2]=0b10000011;
+    lightVolts=read_voltage(writeBuffer);
+    // we here need to convert the voltage to an proportionate light brightness reading
+    lightPercent= 1 -((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
+    if (lightPercent<0.00) {
+      lightPercent=0.00;
+    }
+    if (lightPercent>1.00) {
+      lightPercent=1.00;
+    }
+    display_marquee(a1*100,lightPercent,ppm);
+    indicate_led_buzz(ppm);
+    sleep(LOOP_SLEEP_SECS);
+  }
   prep_hw_shutdown();
-  exit(-1);
-}
-void on_force_shutdown(){
-  static unsigned long lastISRTime =0;
-  unsigned long currentISRTime = millis();
-  if(currentISRTime-lastISRTime >DEBOUNCE){
-    prep_hw_shutdown();
-    sleep(2);
-    system("sudo shutdown now");
-  }
-  lastISRTime = currentISRTime;
-}
-void on_force_reset(){
-  static unsigned long lastISRTime =0;
-  unsigned long currentISRTime = millis();
-  if(currentISRTime-lastISRTime >DEBOUNCE){
-    prep_hw_shutdown();
-    sleep(2);
-    system("sudo systemctl restart co2sensing.service");
-  }
-  lastISRTime = currentISRTime;
+  return 0;
 }
