@@ -5,7 +5,5 @@
 
 echo "opening code files in atom, please keep atom remote server running .."
 ratom device.c
-ratom device-compile.sh
-# ratom device-upstart.c
-sudo ratom /etc/systemd/system/co2sensing.service
-# sudo ratom /etc/systemd/system/co2sensing.upstart.service
+ratom device-service.c
+ratom compile.sh
