@@ -156,12 +156,6 @@ int main(int argc, char const *argv[]) {
   pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
   pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
   pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
-  // pinMode(BTN_SHUTDOWN, INPUT);
-  // pullUpDnControl(BTN_SHUTDOWN, PUD_UP);
-  // wiringPiISR(BTN_SHUTDOWN, INT_EDGE_FALLING, &on_force_shutdown);
-  // pinMode(BTN_RESET, INPUT);
-  // pullUpDnControl(BTN_RESET, PUD_UP);
-  // wiringPiISR(BTN_RESET, INT_EDGE_FALLING, &on_force_reset);
   // here do some prep calculations for C02 measurement
   float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
   writeBuffer[0]=1;
