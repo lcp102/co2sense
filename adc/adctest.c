@@ -26,10 +26,12 @@ int main(int argc, char const *argv[]) {
   // float a2  =ads115_read_volts(writeBuffer, 0x48, &error);
   // printf("%.3f\t\t%.3f\t\t%.3f", a0,a1,a2);
   float voltages[4];
+  printf("A0(Volts)\t\tA1(Volts)\t\tA2(Volts)\n");
+  printf("=======================================\n");
   while(1){
     float voltages[4];
     int result  =ads115_read_volts(0x48,voltages);
-    printf("%.4f\n", voltages[1]);
+    printf("%.4f\t\t%.4f\t\t%.4f", *voltages, *(voltages+1),*(voltages+2));
     sleep(3);
   }
   return 0;
