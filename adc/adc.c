@@ -67,9 +67,9 @@ float read_device(uint8_t conf[], int addr ,int* error){
   close(fd);
   return val*VPS;
 }
-int ads115_read_volts(int slaveaddr,float* readings){
-  const int slave_addr =slaveaddr;
-  uint8_t a1Config[3],a0Config[3], a2Config[3];
+float* ads115_read_volts(int slaveaddr){
+  static float readings[4];
+  uint8_t a1Config[3],a0Config[3], a2Config[3], a3Config[3];
   a0Config[0]=1;
   a0Config[1]=0b11000011;
   a0Config[2]=0b10000011;
@@ -79,6 +79,9 @@ int ads115_read_volts(int slaveaddr,float* readings){
   a2Config[0]=1;
   a2Config[1]=0b11100011;
   a2Config[2]=0b10000011;
+  a3Config[0]=1;
+  a3Config[1]=0b11110011;
+  a3Config[2]=0b10000011;
   int err =0;
   float  volts  = read_device(a0Config, 0x48,&err);
   // printf("%.5f\n", volts);
@@ -95,5 +98,10 @@ int ads115_read_volts(int slaveaddr,float* readings){
   if (err==0) {
     *(readings+2) = volts;
   }
-  return 0;
+  volts  = read_device(a3Config, 0x48,&err);
+  // printf("%.5f\n", volts);
+  if (err==0) {
+    *(readings+3) = volts;
+  }
+  return readings;
 }
