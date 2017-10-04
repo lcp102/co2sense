@@ -67,41 +67,40 @@ float read_device(uint8_t conf[], int addr ,int* error){
   close(fd);
   return val*VPS;
 }
-float* ads115_read_volts(int slaveaddr){
-  static float readings[4];
+int ads115_read_volts(int slaveaddr,float* readings){
+  /*
+  slaveaddr     :this is the I2C slave address
+  readings      :result of the readings on all the channels
+  */
   uint8_t a1Config[3],a0Config[3], a2Config[3], a3Config[3];
+  int err =0;
+  // channel0 configuration
   a0Config[0]=1;
   a0Config[1]=0b11000011;
   a0Config[2]=0b10000011;
+  // channel1 configuration
+  float  volts  = read_device(a0Config, 0x48,&err);
+  if (err!=0) {return err;}
+  *(readings) = volts; //if it was clean read from the device
   a1Config[0]=1;
   a1Config[1]=0b11010011;
   a1Config[2]=0b10000011;
+  // channel2 configuration
+  volts  = read_device(a1Config, 0x48,&err);
+  if (err!=0) {return err;}
+  *(readings+1) = volts;//if it was a clean read
   a2Config[0]=1;
   a2Config[1]=0b11100011;
   a2Config[2]=0b10000011;
+  volts  = read_device(a2Config, 0x48,&err);
+  if (err!=0) {return err;}
+  *(readings+2) = volts;
+  // channel3 configuration
   a3Config[0]=1;
   a3Config[1]=0b11110011;
   a3Config[2]=0b10000011;
-  int err =0;
-  float  volts  = read_device(a0Config, 0x48,&err);
-  // printf("%.5f\n", volts);
-  if (err==0) {
-    *(readings) = volts;
-  }
-  volts  = read_device(a1Config, 0x48,&err);
-  // printf("%.5f\n", volts);
-  if (err==0) {
-    *(readings+1) = volts;
-  }
-  volts  = read_device(a2Config, 0x48,&err);
-  // printf("%.5f\n", volts);
-  if (err==0) {
-    *(readings+2) = volts;
-  }
   volts  = read_device(a3Config, 0x48,&err);
-  // printf("%.5f\n", volts);
-  if (err==0) {
-    *(readings+3) = volts;
-  }
-  return readings;
+  if (err==0) {return err;}
+  *(readings+3) = volts;
+  return 0;
 }
