@@ -18,14 +18,12 @@ int main(int argc, char const *argv[]) {
     // this is where we go ahead to test the single channel read ..
     int ok =0;
     PGA gain = GAIN_EIGHT;
-    float volts =ads115_read_channel(0x48, 1,gain, &ok);
-    if (ok==0) {
-      printf("%.4f\n",volts );
-    }
+    DTRATE dr = DR_128;
+    float voltsA1=ads115_read_channel(0x48, 1,gain, dr,&ok);
     gain = GAIN_TWO;// we know from direct measurement LDR voltage is around 1.24 V
-    volts =ads115_read_channel(0x48, 2,gain, &ok);
+    float voltsA2 =ads115_read_channel(0x48, 2,gain, dr,&ok);
     if (ok==0) {
-      printf("%.4f\n",volts );
+      printf("%.4f\t\t%.4f\n",voltsA1, voltsA2 );
     }
     sleep(3);
   }
