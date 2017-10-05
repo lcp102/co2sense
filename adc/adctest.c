@@ -22,6 +22,11 @@ int main(int argc, char const *argv[]) {
     if (ok==0) {
       printf("%.4f\n",volts );
     }
+    gain = GAIN_TWO;// we know from direct measurement LDR voltage is around 1.24 V
+    volts =ads115_read_channel(0x48, 2,gain, &ok);
+    if (ok==0) {
+      printf("%.4f\n",volts );
+    }
     sleep(3);
   }
   return 0;

@@ -17,7 +17,7 @@ this would control the working of analog to digital conversions for the raspberr
 PGA gain=GAIN_ONE; //this is setting the default
 
 
-/*This gets the ceiling of each of the gains
+/*This gets the range  of each of the gain levels
 gain      : this the enum choice the user selects */
 float gain_range(PGA gain){
   float range = 4.096; //this is the default value
