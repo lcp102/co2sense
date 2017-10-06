@@ -172,9 +172,9 @@ float ads115_read_channel(int slaveaddr, int channel, PGA gain, DTRATE dr,int* o
   config[1] = config[1] |channel<<4;
   config[1] = config[1] | gain << 1; //the pga in the byte is 11:9
   config[1] = config[1] | 1; //this is to set the mode to single shot power down
-  config[2]=0b00000011; //LSB of the configuration register
+  config[2]=0b10000011; //LSB of the configuration register
   // here we can go ahead to adjust the data rate as requested
-  config[2]= config[2] | dr <<5;
+  // config[2]= config[2] | dr <<5;
   volts = read_device(config, slaveaddr,gain,dr,ok);
   if (*ok !=0) {
     // this is when we had a problem reading the device

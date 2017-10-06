@@ -5,10 +5,9 @@
 #include "adc.h"
 void test_singlechannel_read(){
   int ok =0;
-  PGA gain = GAIN_EIGHT;
+  PGA gain = GAIN_ONE;
   DTRATE dr = DR_128;
   float voltsA1=ads115_read_channel(0x48, 1,gain, dr,&ok);
-  gain = GAIN_TWO;// we know from direct measurement LDR voltage is around 1.24 V
   float voltsA2 =ads115_read_channel(0x48, 2,gain, dr,&ok);
   if (ok==0) {
     printf("%.4f\t\t%.4f\n",voltsA1, voltsA2 );
