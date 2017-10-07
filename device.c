@@ -13,6 +13,8 @@ run           : ./bin/i2ctest
 #include <string.h>
 #include<signal.h>
 #include"./adc/adc.h"
+#include "./mq135/mq135.h"
+#include "./ldr/ldr.h"
 
 #define RS 9
 #define E 11
@@ -27,16 +29,12 @@ run           : ./bin/i2ctest
 #define BTN_SHUTDOWN 21
 #define BTN_RESET 20
 // refer to https://www.co2.earth/ for knowing the current concentration of C02
-#define CO2_PPM_NOW 407.25
 /* http://www.instructables.com/id/Arduino-Air-Monitor-Shield-Live-in-a-Safe-Environm
 this actually can be seen from the characteristics of this sensor , for which you would have to rfer to datasheet
 but then the above site makes it much more easier and gives values directly you can use
 equation    : log(Rs/Ro) = m*log(ppm)+c
 for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/what-are-safe-levels-of-co-and-co2-in-rooms
 */
-#define Y_INTERCEPT 0.7597917824 //this has been considered the average c
-#define SLOPE -0.370955166
-#define RESIS_LOAD 2.5 // in Kohms , is the resistance on RL as measured
 #define LOOP_MAX 3600
 #define LOOP_SLEEP_SECS 2
 // these extremeties need to adjusted / calibrated.
@@ -44,7 +42,6 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 #define DARK_VOLTS 1.6851
 #define BRIGHT_VOLTS 2.2831
 #define DEBOUNCE 200
-#define ADC_MQ135_CHN 0
 #define ADC_LM35_CHN 1
 #define ADC_LDR_CHN 2
 int lcd; //pointer for the lcd object
@@ -60,9 +57,6 @@ void on_interrupt(int signal){
 }
 void display_marquee(float temp, float light, float co2){
   char tempMessage[6], lightMessage[10], co2Message[16];
-  // this is inline issue 2, we are getting the reading but i guess we are not adjusting to the correct decimal places.
-  // we have now replaced the LDR with a brand new one.
-  // sprintf(tempMessage,"T:%.2f\337 L:%.1f%%",temp, light);
   sprintf(tempMessage, "%.2f", temp);
   sprintf(lightMessage, ":%.1f%%", light);
   sprintf(co2Message,":%.1f",co2);
@@ -147,8 +141,9 @@ void indicate_led_buzz(float ppm){
   }
 }
 int main(int argc, char const *argv[]) {
-  // uint8_t writeBuffer[3] ;
-  float a0, a1, lightVolts, lightPercent;
+
+  float a0, a1, light;
+  int ok =0;
   // register a signal
   // here we are testing only for the SIGINT
   signal(SIGINT, &on_interrupt);
@@ -167,24 +162,23 @@ int main(int argc, char const *argv[]) {
   pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
   pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
   // here do some prep calculations for C02 measurement
-  float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
-  int ok =0;
-  float Vrl= ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
-  if(ok!=0){perror("We have a problem reading the ADC channel");}
-  float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
-  float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
-  float ppm;
+  // float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
+  // float Vrl= ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
+  // if(ok!=0){perror("We have a problem reading the ADC channel");}
+  // float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
+  // float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
   while (1) {
-    Vrl=ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
-    Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
-    ppm = pow(10,((log10(Rs/Ro)-Y_INTERCEPT)/SLOPE));
+    float ppm=ppm_co2(&ok, 0, 0);
+    if(ok!=0){perror("device.c: failed to get the co2 footprint");continue;}
     a1=ads115_read_channel(0x48,ADC_LM35_CHN, GAIN_FOUR, DR_128,&ok);
     if(ok!=0){perror("We have a problem reading the temperature channel on the ADS");}
-    lightVolts=ads115_read_channel(0x48,ADC_LDR_CHN,GAIN_ONE,DR_128,&ok);
-    lightPercent= ((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
-    if (lightPercent<0.00) {lightPercent=0.00;}
-    if (lightPercent>1.00) {lightPercent=1.00;}
-    display_marquee(a1*100,lightPercent*100,ppm);
+    // lightVolts=ads115_read_channel(0x48,ADC_LDR_CHN,GAIN_ONE,DR_128,&ok);
+    // lightPercent= ((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
+    // if (lightPercent<0.00) {lightPercent=0.00;}
+    // if (lightPercent>1.00) {lightPercent=1.00;}
+    float light =light_percent(&ok, 2, BRIGHT_VOLTS, DARK_VOLTS);
+    if(ok!=0){perror("We have a problem reading the light intensity");}
+    display_marquee(a1*100,light*100,ppm);
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
   }
