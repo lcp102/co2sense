@@ -8,8 +8,6 @@ run           : ./bin/i2ctest
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>    // exit, delay
-#include <unistd.h>    // read/write usleep
-#include <inttypes.h>  // uint8_t, etc
 #include <wiringPi.h>
 #include<lcd.h>
 #include <string.h>
@@ -184,12 +182,8 @@ int main(int argc, char const *argv[]) {
     if(ok!=0){perror("We have a problem reading the temperature channel on the ADS");}
     lightVolts=ads115_read_channel(0x48,ADC_LDR_CHN,GAIN_ONE,DR_128,&ok);
     lightPercent= ((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
-    if (lightPercent<0.00) {
-      lightPercent=0.00;
-    }
-    if (lightPercent>1.00) {
-      lightPercent=1.00;
-    }
+    if (lightPercent<0.00) {lightPercent=0.00;}
+    if (lightPercent>1.00) {lightPercent=1.00;}
     display_marquee(a1*100,lightPercent*100,ppm);
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
