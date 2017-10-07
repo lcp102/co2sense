@@ -66,13 +66,16 @@ void display_marquee(float temp, float light, float co2){
   // we have now replaced the LDR with a brand new one.
   // sprintf(tempMessage,"T:%.2f\337 L:%.1f%%",temp, light);
   sprintf(tempMessage, "%.2f", temp);
-  sprintf(lightMessage, " L:%.1f%%", light);
-  sprintf(co2Message,"Co2(ppm):%.2f",co2);
+  sprintf(lightMessage, ":%.1f%%", light);
+  sprintf(co2Message,":%.1f",co2);
   lcdClear(lcd);
   lcdPuts(lcd, tempMessage);
   lcdPutchar(lcd, 0); //0th character is defined as the deg ceclius symbol
+  lcdPuts(lcd,"  ");
+  lcdPutchar(lcd,1);
   lcdPuts(lcd, lightMessage);
   lcdPosition(lcd,0,1);
+  lcdPutchar(lcd,2);
   lcdPuts(lcd, co2Message);
 }
 // float read_voltage(uint8_t config[]){
@@ -156,7 +159,11 @@ int main(int argc, char const *argv[]) {
   wiringPiSetupGpio();
   lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
   unsigned char char_degcelcius[8] = {0x18,0x18,0x3,0x4,0x4,0x4,0x3,0x0}; //defining a new symbol
+  unsigned char char_lightlambda[8]={0x4,0xa,0xa,0xa,0x11,0x1f,0xe,0x0};
+  unsigned char char_co2[8]={0x2,0x4,0xe,0x10,0x10,0x11,0xe,0x0};
   lcdCharDef (lcd, 0, char_degcelcius) ;
+  lcdCharDef (lcd, 1, char_lightlambda) ;
+  lcdCharDef (lcd, 2, char_co2) ;
   lcdPuts(lcd, "Sensing...");
   pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
   pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
