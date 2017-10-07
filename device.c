@@ -8,16 +8,17 @@ run           : ./bin/i2ctest
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>    // exit, delay
-#include <sys/types.h> // open
-#include <sys/stat.h>  // open
-#include <fcntl.h>     // open
+// #include <sys/types.h> // open
+// #include <sys/stat.h>  // open
+// #include <fcntl.h>     // open
 #include <unistd.h>    // read/write usleep
 #include <inttypes.h>  // uint8_t, etc
-#include <linux/i2c-dev.h> // I2C bus definitions
+// #include <linux/i2c-dev.h> // I2C bus definitions
 #include <wiringPi.h>
 #include<lcd.h>
 #include <string.h>
 #include<signal.h>
+#include"./adc/adc.h"
 
 #define RS 9
 #define E 11
@@ -46,9 +47,12 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 #define LOOP_SLEEP_SECS 2
 // these extremeties need to adjusted / calibrated.
 // this needs to be tested on a restart.
-#define DARK_VOLTS 2.042
-#define BRIGHT_VOLTS 2.049
+#define DARK_VOLTS 1.6851
+#define BRIGHT_VOLTS 2.2831
 #define DEBOUNCE 200
+#define ADC_MQ135_CHN 0
+#define ADC_LM35_CHN 1
+#define ADC_LDR_CHN 2
 int lcd; //pointer for the lcd object
 
 void on_interrupt(int signal){
@@ -64,57 +68,57 @@ void display_marquee(float temp, float light, float co2){
   char tempMessage[50], lightMessage[50], co2Message[50];
   // this is inline issue 2, we are getting the reading but i guess we are not adjusting to the correct decimal places.
   // we have now replaced the LDR with a brand new one.
-  sprintf(tempMessage,"T:%.2f L:%.4f",temp, light);
-  sprintf(co2Message,"Co2(ppm):%.3f",co2);
+  sprintf(tempMessage,"T:%.2f\337 L:%.1f%%",temp, light);
+  sprintf(co2Message,"Co2(ppm):%.2f",co2);
   lcdClear(lcd);
   lcdPuts(lcd, tempMessage);
   lcdPosition(lcd,0,1);
   lcdPuts(lcd, co2Message);
 }
-float read_voltage(uint8_t config[]){
-  const float VPS = 4.096/32767.0 ;// since we intend to keep the gain at 4.096V
-  const int slave_addr = 0x48;
-  int sps=128;
-  int fd; //this is the open file pointer.
-  int16_t val;
-  uint8_t readBuffer[3] ;
-  if ((fd = open("/dev/i2c-1", O_RDWR)) <0) {
-    printf("Could not open device %d\n",fd );
-    return -1;
-  }
-  if(ioctl(fd, I2C_SLAVE, slave_addr) < 0){
-    printf("Failed to connect to I2C slave\n");
-    return -1;
-  }
-  if (write(fd, config, 3)!=3) {
-    perror("configuration write error:");
-    printf("There was error writing to the configuration register\n");
-    exit(-1);
-  }
-  do {
-    if (read(fd, config, 2)!=2) {
-      printf("Could not read the register \n" );
-      exit(-1);
-    }
-  } while(config[0] & 0x80 ==0);
-  usleep((1/(float)sps)*1000000+2000);
-  readBuffer[0] = 0;
-  if (write(fd, readBuffer,1)!=1) {
-    perror("Error switching the register");
-    exit(-1);
-  }
-  // and then we go ahead to read from the conversion register
-  if (read(fd, readBuffer, 2)!=2) {
-    printf("Error reading the conversion register\n");
-    exit(-1);
-  }
-  val  = (readBuffer[0] <<8 | readBuffer[1]);
-  if (val <0) {
-    val =0.00;
-  }
-  close(fd);
-  return val * VPS;
-}
+// float read_voltage(uint8_t config[]){
+//   const float VPS = 4.096/32767.0 ;// since we intend to keep the gain at 4.096V
+//   const int slave_addr = 0x48;
+//   int sps=128;
+//   int fd; //this is the open file pointer.
+//   int16_t val;
+//   uint8_t readBuffer[3] ;
+//   if ((fd = open("/dev/i2c-1", O_RDWR)) <0) {
+//     printf("Could not open device %d\n",fd );
+//     return -1;
+//   }
+//   if(ioctl(fd, I2C_SLAVE, slave_addr) < 0){
+//     printf("Failed to connect to I2C slave\n");
+//     return -1;
+//   }
+//   if (write(fd, config, 3)!=3) {
+//     perror("configuration write error:");
+//     printf("There was error writing to the configuration register\n");
+//     exit(-1);
+//   }
+//   do {
+//     if (read(fd, config, 2)!=2) {
+//       printf("Could not read the register \n" );
+//       exit(-1);
+//     }
+//   } while(config[0] & 0x80 ==0);
+//   usleep((1/(float)sps)*1000000+2000);
+//   readBuffer[0] = 0;
+//   if (write(fd, readBuffer,1)!=1) {
+//     perror("Error switching the register");
+//     exit(-1);
+//   }
+//   // and then we go ahead to read from the conversion register
+//   if (read(fd, readBuffer, 2)!=2) {
+//     printf("Error reading the conversion register\n");
+//     exit(-1);
+//   }
+//   val  = (readBuffer[0] <<8 | readBuffer[1]);
+//   if (val <0) {
+//     val =0.00;
+//   }
+//   close(fd);
+//   return val * VPS;
+// }
 void indicate_led_buzz(float ppm){
   // we dont want the GPIO to be erquested to change state even when it is in the required state
   // so we change the state only when necessary
@@ -142,8 +146,7 @@ void indicate_led_buzz(float ppm){
   }
 }
 int main(int argc, char const *argv[]) {
-  uint8_t writeBuffer[3] ;
-  size_t i;
+  // uint8_t writeBuffer[3] ;
   float a0, a1, lightVolts, lightPercent;
   // register a signal
   // here we are testing only for the SIGINT
@@ -158,37 +161,40 @@ int main(int argc, char const *argv[]) {
   pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
   // here do some prep calculations for C02 measurement
   float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
-  writeBuffer[0]=1;
-  writeBuffer[1]=0b11000011; //this configuration signifies
-  writeBuffer[2]=0b10000011;
-  float Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
+  // writeBuffer[0]=1;
+  // writeBuffer[1]=0b11000011; //this configuration signifies
+  // writeBuffer[2]=0b10000011;
+  int ok =0;
+  float Vrl= ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
+  if(ok!=0){perror("We have a problem reading the ADC channel");}
   float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
   float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
   float ppm;
   while (1) {
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11000011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    Vrl=read_voltage(writeBuffer); //this is the voltage across the load resistor
+    // writeBuffer[0]=1;
+    // writeBuffer[1]=0b11000011; //this configuration signifies
+    // writeBuffer[2]=0b10000011;
+    Vrl=ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
     Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
     ppm = pow(10,((log10(Rs/Ro)-Y_INTERCEPT)/SLOPE));
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11010011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    a1=read_voltage(writeBuffer);
-    writeBuffer[0]=1;
-    writeBuffer[1]=0b11100011; //this configuration signifies
-    writeBuffer[2]=0b10000011;
-    lightVolts=read_voltage(writeBuffer);
+    // writeBuffer[0]=1;
+    // writeBuffer[1]=0b11010011; //this configuration signifies
+    // writeBuffer[2]=0b10000011;
+    a1=ads115_read_channel(0x48,ADC_LM35_CHN, GAIN_FOUR, DR_128,&ok);
+    if(ok!=0){perror("We have a problem reading the temperature channel on the ADS");}
+    // writeBuffer[0]=1;
+    // writeBuffer[1]=0b11100011; //this configuration signifies
+    // writeBuffer[2]=0b10000011;
+    lightVolts=ads115_read_channel(0x48,ADC_LDR_CHN,GAIN_ONE,DR_128,&ok);
     // we here need to convert the voltage to an proportionate light brightness reading
-    lightPercent= 1 -((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
+    lightPercent= ((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
     if (lightPercent<0.00) {
       lightPercent=0.00;
     }
     if (lightPercent>1.00) {
       lightPercent=1.00;
     }
-    display_marquee(a1*100,lightPercent,ppm);
+    display_marquee(a1*100,lightPercent*100,ppm);
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
   }
