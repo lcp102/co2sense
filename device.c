@@ -12,9 +12,9 @@ run           : ./bin/i2ctest
 #include<lcd.h>
 #include <string.h>
 #include<signal.h>
-#include"./adc/adc.h"
-#include "./mq135/mq135.h"
-#include "./ldr/ldr.h"
+#include"./bin/adc.h"
+#include "./bin/mq135.h"
+#include "./bin/ldr.h"
 
 #define RS 9
 #define E 11
@@ -161,21 +161,11 @@ int main(int argc, char const *argv[]) {
   pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
   pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
   pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
-  // here do some prep calculations for C02 measurement
-  // float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
-  // float Vrl= ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
-  // if(ok!=0){perror("We have a problem reading the ADC channel");}
-  // float Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
-  // float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
   while (1) {
     float ppm=ppm_co2(&ok, 0, 0);
     if(ok!=0){perror("device.c: failed to get the co2 footprint");continue;}
     a1=ads115_read_channel(0x48,ADC_LM35_CHN, GAIN_FOUR, DR_128,&ok);
     if(ok!=0){perror("We have a problem reading the temperature channel on the ADS");}
-    // lightVolts=ads115_read_channel(0x48,ADC_LDR_CHN,GAIN_ONE,DR_128,&ok);
-    // lightPercent= ((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
-    // if (lightPercent<0.00) {lightPercent=0.00;}
-    // if (lightPercent>1.00) {lightPercent=1.00;}
     float light =light_percent(&ok, 2, BRIGHT_VOLTS, DARK_VOLTS);
     if(ok!=0){perror("We have a problem reading the light intensity");}
     display_marquee(a1*100,light*100,ppm);

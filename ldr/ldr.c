@@ -1,5 +1,5 @@
-#include "ldr.h"
-#include "../adc/adc.h"
+#include "../bin/ldr.h"
+#include "../bin/adc.h"
 
 /*this function returns the temperature of the room
 @ok         :status of the function

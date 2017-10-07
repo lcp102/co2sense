@@ -7,7 +7,7 @@
 #include <linux/i2c-dev.h>
 #include <linux/i2c.h>
 #include <unistd.h>
-#include "adc.h"
+#include "../bin/adc.h"
 /*
 author    :kneerunjun
 This was created to modulate the load from device sensing loop
