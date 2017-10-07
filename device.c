@@ -8,12 +8,8 @@ run           : ./bin/i2ctest
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>    // exit, delay
-// #include <sys/types.h> // open
-// #include <sys/stat.h>  // open
-// #include <fcntl.h>     // open
 #include <unistd.h>    // read/write usleep
 #include <inttypes.h>  // uint8_t, etc
-// #include <linux/i2c-dev.h> // I2C bus definitions
 #include <wiringPi.h>
 #include<lcd.h>
 #include <string.h>
@@ -167,9 +163,6 @@ int main(int argc, char const *argv[]) {
   pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
   // here do some prep calculations for C02 measurement
   float ratio_rs_ro=pow(10, ((SLOPE*(log10(CO2_PPM_NOW))+Y_INTERCEPT)));
-  // writeBuffer[0]=1;
-  // writeBuffer[1]=0b11000011; //this configuration signifies
-  // writeBuffer[2]=0b10000011;
   int ok =0;
   float Vrl= ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
   if(ok!=0){perror("We have a problem reading the ADC channel");}
@@ -177,22 +170,12 @@ int main(int argc, char const *argv[]) {
   float Ro=Rs/ratio_rs_ro; //this is one time activity .. we woudl no longer do this in a loop
   float ppm;
   while (1) {
-    // writeBuffer[0]=1;
-    // writeBuffer[1]=0b11000011; //this configuration signifies
-    // writeBuffer[2]=0b10000011;
     Vrl=ads115_read_channel(0x48,ADC_MQ135_CHN, GAIN_TWO, DR_128,&ok);
     Rs=(5.00 * RESIS_LOAD/Vrl)- RESIS_LOAD;
     ppm = pow(10,((log10(Rs/Ro)-Y_INTERCEPT)/SLOPE));
-    // writeBuffer[0]=1;
-    // writeBuffer[1]=0b11010011; //this configuration signifies
-    // writeBuffer[2]=0b10000011;
     a1=ads115_read_channel(0x48,ADC_LM35_CHN, GAIN_FOUR, DR_128,&ok);
     if(ok!=0){perror("We have a problem reading the temperature channel on the ADS");}
-    // writeBuffer[0]=1;
-    // writeBuffer[1]=0b11100011; //this configuration signifies
-    // writeBuffer[2]=0b10000011;
     lightVolts=ads115_read_channel(0x48,ADC_LDR_CHN,GAIN_ONE,DR_128,&ok);
-    // we here need to convert the voltage to an proportionate light brightness reading
     lightPercent= ((float)(lightVolts- DARK_VOLTS)/(BRIGHT_VOLTS-DARK_VOLTS));
     if (lightPercent<0.00) {
       lightPercent=0.00;
