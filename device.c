@@ -65,13 +65,17 @@ void on_interrupt(int signal){
   exit(0);
 }
 void display_marquee(float temp, float light, float co2){
-  char tempMessage[50], lightMessage[50], co2Message[50];
+  char tempMessage[6], lightMessage[10], co2Message[16];
   // this is inline issue 2, we are getting the reading but i guess we are not adjusting to the correct decimal places.
   // we have now replaced the LDR with a brand new one.
-  sprintf(tempMessage,"T:%.2f\337 L:%.1f%%",temp, light);
+  // sprintf(tempMessage,"T:%.2f\337 L:%.1f%%",temp, light);
+  sprintf(tempMessage, "%.2f", temp);
+  sprintf(lightMessage, " L:%.1f%%", light);
   sprintf(co2Message,"Co2(ppm):%.2f",co2);
   lcdClear(lcd);
   lcdPuts(lcd, tempMessage);
+  lcdPutchar(lcd, 0); //0th character is defined as the deg ceclius symbol
+  lcdPuts(lcd, lightMessage);
   lcdPosition(lcd,0,1);
   lcdPuts(lcd, co2Message);
 }
@@ -155,6 +159,8 @@ int main(int argc, char const *argv[]) {
   // this is being setup from the upstart service , re setting here woudl lead to some problem
   wiringPiSetupGpio();
   lcd = lcdInit (2,16,4,RS,E,D0,D1,D2,D3,0,0,0,0);
+  unsigned char char_degcelcius[8] = {0x18,0x18,0x3,0x4,0x4,0x4,0x3,0x0}; //defining a new symbol
+  lcdCharDef (lcd, 0, char_degcelcius) ;
   lcdPuts(lcd, "Sensing...");
   pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
   pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);

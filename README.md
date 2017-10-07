@@ -11,3 +11,5 @@ A project from the PiFarm suite of application to sense the air quality , measur
 3. [Programmable gain amplification for ADS115](https://learn.adafruit.com/adafruit-4-channel-adc-breakouts/programming)
 4. [C functions returning success or error](https://stackoverflow.com/questions/9549342/should-i-return-0-or-1-for-successful-function)
 5. [About 16X2 character LCDs](https://cdn-learn.adafruit.com/downloads/pdf/character-lcds.pdf)
+6. [Creating custom characters on LCDs](https://www.quinapalus.com/hd44780udg.html)
+7. [wiringPi LCD know how](http://wiringpi.com/dev-lib/lcd-library/)
