@@ -13,3 +13,5 @@ A project from the PiFarm suite of application to sense the air quality , measur
 5. [About 16X2 character LCDs](https://cdn-learn.adafruit.com/downloads/pdf/character-lcds.pdf)
 6. [Creating custom characters on LCDs](https://www.quinapalus.com/hd44780udg.html)
 7. [wiringPi LCD know how](http://wiringpi.com/dev-lib/lcd-library/)
+8. [Guide for calculating Co2 in ppm](http://www.instructables.com/id/Arduino-Air-Monitor-Shield-Live-in-a-Safe-Environm/)
+9. [Knowing the current Co2 ppm of the earth](https://www.co2.earth/)

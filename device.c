@@ -2,7 +2,7 @@
 date          : 25-AUG-2017
 author        : kneerunjun@gmail.com
 purpose       : to try measuring Analog inputs on Rpi using an ADS1115 over I2C and then connect a MQ135 Co2 measurement unit
-compilation   : gcc ./i2ctest.c -o ./bin/i2ctest -lwiringPi -lwiringPiDev -lm
+compilation   : gcc ./device.c -o ./bin/device -lwiringPi -lwiringPiDev -lm -L./adc -ladc
 run           : ./bin/i2ctest
 */
 #include <stdio.h>
