@@ -12,9 +12,9 @@ run           : ./bin/i2ctest
 #include<lcd.h>
 #include <string.h>
 #include<signal.h>
-#include"./bin/adc.h"
-#include "./bin/mq135.h"
-#include "./bin/ldr.h"
+#include"./adc/adc.h"
+#include "./mq135/mq135.h"
+#include "./ldr/ldr.h"
 
 #define RS 9
 #define E 11

@@ -5,9 +5,11 @@
 # after we have discovered problems with the upstarte service we are not using the upstart service. instead we are going ahead with sensing service only
 
 # we first compile and build the adc module
-gcc -c ./adc/adc.c -I./bin -o ./bin/adc.o
-gcc -c ./ldr/ldr.c -I./bin -o./bin/ldr.o
-gcc -c ./mq135/mq135.c -I./bin -o./bin/mq135.o
+gcc -c ./adc/adc.c -I./adc -o ./bin/adc.o
+gcc -c ./ldr/ldr.c -I./ldr -o./bin/ldr.o
+gcc -c ./mq135/mq135.c -I./mq135 -o./bin/mq135.o
+# this then compresses into a single library that can be archived
 ar crv ./bin/libco2.a ./bin/adc.o ./bin/ldr.o ./bin/mq135.o
 ranlib ./bin/libco2.a
+#this is where we make that into a running program
 gcc ./device.c -o./bin/device -lm -lwiringPi -lwiringPiDev -L ./bin -lco2
