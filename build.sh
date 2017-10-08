@@ -8,8 +8,9 @@
 gcc -c ./adc/adc.c -I./adc -o ./bin/adc.o
 gcc -c ./ldr/ldr.c -I./ldr -o./bin/ldr.o
 gcc -c ./mq135/mq135.c -I./mq135 -o./bin/mq135.o
+gcc -c ./lm35/lm35.c -I./lm35 -o./bin/lm35.o
 # this then compresses into a single library that can be archived
-ar crv ./bin/libco2.a ./bin/adc.o ./bin/ldr.o ./bin/mq135.o
+ar crv ./bin/libco2.a ./bin/adc.o ./bin/ldr.o ./bin/mq135.o ./bin/lm35.o
 ranlib ./bin/libco2.a
 #this is where we make that into a running program
 gcc ./device.c -o./bin/device -lm -lwiringPi -lwiringPiDev -L ./bin -lco2

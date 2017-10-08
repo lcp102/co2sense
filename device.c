@@ -12,9 +12,9 @@ run           : ./bin/i2ctest
 #include<lcd.h>
 #include <string.h>
 #include<signal.h>
-#include"./adc/adc.h"
 #include "./mq135/mq135.h"
 #include "./ldr/ldr.h"
+#include "./lm35/lm35.h"
 
 #define RS 9
 #define E 11
@@ -70,50 +70,7 @@ void display_marquee(float temp, float light, float co2){
   lcdPutchar(lcd,2);
   lcdPuts(lcd, co2Message);
 }
-// float read_voltage(uint8_t config[]){
-//   const float VPS = 4.096/32767.0 ;// since we intend to keep the gain at 4.096V
-//   const int slave_addr = 0x48;
-//   int sps=128;
-//   int fd; //this is the open file pointer.
-//   int16_t val;
-//   uint8_t readBuffer[3] ;
-//   if ((fd = open("/dev/i2c-1", O_RDWR)) <0) {
-//     printf("Could not open device %d\n",fd );
-//     return -1;
-//   }
-//   if(ioctl(fd, I2C_SLAVE, slave_addr) < 0){
-//     printf("Failed to connect to I2C slave\n");
-//     return -1;
-//   }
-//   if (write(fd, config, 3)!=3) {
-//     perror("configuration write error:");
-//     printf("There was error writing to the configuration register\n");
-//     exit(-1);
-//   }
-//   do {
-//     if (read(fd, config, 2)!=2) {
-//       printf("Could not read the register \n" );
-//       exit(-1);
-//     }
-//   } while(config[0] & 0x80 ==0);
-//   usleep((1/(float)sps)*1000000+2000);
-//   readBuffer[0] = 0;
-//   if (write(fd, readBuffer,1)!=1) {
-//     perror("Error switching the register");
-//     exit(-1);
-//   }
-//   // and then we go ahead to read from the conversion register
-//   if (read(fd, readBuffer, 2)!=2) {
-//     printf("Error reading the conversion register\n");
-//     exit(-1);
-//   }
-//   val  = (readBuffer[0] <<8 | readBuffer[1]);
-//   if (val <0) {
-//     val =0.00;
-//   }
-//   close(fd);
-//   return val * VPS;
-// }
+
 void indicate_led_buzz(float ppm){
   // we dont want the GPIO to be erquested to change state even when it is in the required state
   // so we change the state only when necessary
@@ -141,8 +98,6 @@ void indicate_led_buzz(float ppm){
   }
 }
 int main(int argc, char const *argv[]) {
-
-  float a0, a1, light;
   int ok =0;
   // register a signal
   // here we are testing only for the SIGINT
@@ -164,11 +119,11 @@ int main(int argc, char const *argv[]) {
   while (1) {
     float ppm=ppm_co2(&ok, 0, 0);
     if(ok!=0){perror("device.c: failed to get the co2 footprint");continue;}
-    a1=ads115_read_channel(0x48,ADC_LM35_CHN, GAIN_FOUR, DR_128,&ok);
+    float temp  = airtemp_now(&ok,1, CELCIUS);
     if(ok!=0){perror("We have a problem reading the temperature channel on the ADS");}
     float light =light_percent(&ok, 2, BRIGHT_VOLTS, DARK_VOLTS);
     if(ok!=0){perror("We have a problem reading the light intensity");}
-    display_marquee(a1*100,light*100,ppm);
+    display_marquee(temp,light*100,ppm);
     indicate_led_buzz(ppm);
     sleep(LOOP_SLEEP_SECS);
   }
