@@ -15,6 +15,7 @@ run           : ./bin/i2ctest
 #include "./mq135/mq135.h"
 #include "./ldr/ldr.h"
 #include "./lm35/lm35.h"
+#include "./alerts/alerts.h"
 
 #define RS 9
 #define E 11
@@ -70,33 +71,6 @@ void display_marquee(float temp, float light, float co2){
   lcdPutchar(lcd,2);
   lcdPuts(lcd, co2Message);
 }
-
-void indicate_led_buzz(float ppm){
-  // we dont want the GPIO to be erquested to change state even when it is in the required state
-  // so we change the state only when necessary
-  if (ppm <850.00) {
-    // the light is blue, buzzer is off
-    if(digitalRead(BLUE_GPIO) ==0){digitalWrite(BLUE_GPIO, HIGH);}
-    if(digitalRead(RED_GPIO)==1){digitalWrite(RED_GPIO, LOW);}
-    if(digitalRead(BUZZ_GPIO)==1){digitalWrite(BUZZ_GPIO, LOW);}
-  }
-  else if(ppm <=1700.00){
-    // the light is magenta, buzzer is off
-    if(digitalRead(BLUE_GPIO) ==0){digitalWrite(BLUE_GPIO, HIGH);}
-    if(digitalRead(RED_GPIO)==0){digitalWrite(RED_GPIO, HIGH);}
-    if(digitalRead(BUZZ_GPIO)==1){digitalWrite(BUZZ_GPIO, LOW);}
-  }
-  else {
-    // the light is red, buzzer is on
-    if(digitalRead(BLUE_GPIO) ==1){digitalWrite(BLUE_GPIO, LOW);}
-    if(digitalRead(RED_GPIO)==0){digitalWrite(RED_GPIO, HIGH);}
-    if(digitalRead(BUZZ_GPIO)==0){
-      digitalWrite(BUZZ_GPIO, HIGH);
-      sleep(2);
-      digitalWrite(BUZZ_GPIO, LOW);
-    }
-  }
-}
 int main(int argc, char const *argv[]) {
   int ok =0;
   // register a signal
@@ -113,18 +87,24 @@ int main(int argc, char const *argv[]) {
   lcdCharDef (lcd, 1, char_lightlambda) ;
   lcdCharDef (lcd, 2, char_co2) ;
   lcdPuts(lcd, "Sensing...");
-  pinMode (RED_GPIO, OUTPUT) ; digitalWrite(RED_GPIO, LOW);
-  pinMode (BLUE_GPIO, OUTPUT) ; digitalWrite(BLUE_GPIO, LOW);
-  pinMode (BUZZ_GPIO, OUTPUT) ; digitalWrite(BUZZ_GPIO, LOW);
+
+  // setting up the alerts
+  setup_alert(BLUE_GPIO, RED_GPIO, BUZZ_GPIO);
   while (1) {
+
     float ppm=ppm_co2(&ok, 0, 0);
     if(ok!=0){perror("device.c: failed to get the co2 footprint");continue;}
+
     float temp  = airtemp_now(&ok,1, CELCIUS);
     if(ok!=0){perror("We have a problem reading the temperature channel on the ADS");}
+
     float light =light_percent(&ok, 2, BRIGHT_VOLTS, DARK_VOLTS);
     if(ok!=0){perror("We have a problem reading the light intensity");}
+
     display_marquee(temp,light*100,ppm);
-    indicate_led_buzz(ppm);
+    if (ppm <=700.00) {alert(&ok, 0, 0);}
+    else if(ppm>700.00 && ppm<=1500.00){alert(&ok, 1, 0);}
+    else if(ppm>1500.00){alert(&ok, 2, 0);}
     sleep(LOOP_SLEEP_SECS);
   }
   prep_hw_shutdown();
