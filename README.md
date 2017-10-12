@@ -1,4 +1,4 @@
-# co2sense
+ # co2sense
 A project from the PiFarm suite of application to sense the air quality , measuring Cox, Nox , Sox of ambient air and analyse the data over time on the cloud
 
 
@@ -15,3 +15,4 @@ A project from the PiFarm suite of application to sense the air quality , measur
 7. [wiringPi LCD know how](http://wiringpi.com/dev-lib/lcd-library/)
 8. [Guide for calculating Co2 in ppm](http://www.instructables.com/id/Arduino-Air-Monitor-Shield-Live-in-a-Safe-Environm/)
 9. [Knowing the current Co2 ppm of the earth](https://www.co2.earth/)
+10.[Libcurl for REST HTTP client from C](https://curl.haxx.se/libcurl/c/libcurl-tutorial.html)
