@@ -52,26 +52,10 @@ void on_interrupt(int signal){
   digitalWrite(BLUE_GPIO, LOW);
   digitalWrite(RED_GPIO, LOW);
   digitalWrite(BUZZ_GPIO, LOW);
-  lcdClear(lcd);
-  lcdPuts(lcd, "Shutting down..!");
-  lcdClear(lcd);
+  lcd_clear();
   exit(0);
 }
-// void display_marquee(float temp, float light, float co2){
-//   char tempMessage[6], lightMessage[10], co2Message[16];
-//   sprintf(tempMessage, "%.2f", temp);
-//   sprintf(lightMessage, ":%.1f%%", light);
-//   sprintf(co2Message,":%.1f",co2);
-//   lcdClear(lcd);
-//   lcdPuts(lcd, tempMessage);
-//   lcdPutchar(lcd, 0); //0th character is defined as the deg ceclius symbol
-//   lcdPuts(lcd,"  ");
-//   lcdPutchar(lcd,1);
-//   lcdPuts(lcd, lightMessage);
-//   lcdPosition(lcd,0,1);
-//   lcdPutchar(lcd,2);
-//   lcdPuts(lcd, co2Message);
-// }
+
 int main(int argc, char const *argv[]) {
   int ok =0;
   // register a signal

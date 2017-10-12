@@ -29,9 +29,10 @@ void display_readings(float temp, float light, float co2){
   // this takes in the specific readings instead of the string message and does the job of placing them right
   char stream[20];
   lcdClear(lcd);
-  sprintf(stream, "T:%.1f",temp);
+  sprintf(stream, "T:%.1f\337C",temp);
   lcdPuts(lcd ,stream);
-  lcdPutchar(lcd,0); //this puts the deg celcius symbol
+  // somehow the special characters aint displaying after some consistent use
+  // lcdPutchar(lcd,0); //this puts the deg celcius symbol
   sprintf(stream, " L:%.1f%%", light);
   lcdPuts(lcd ,stream);
   lcdPosition(lcd, 0,1);
