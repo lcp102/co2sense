@@ -38,7 +38,7 @@ equation    : log(Rs/Ro) = m*log(ppm)+c
 for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/what-are-safe-levels-of-co-and-co2-in-rooms
 */
 #define LOOP_MAX 3600
-#define LOOP_SLEEP_SECS 2
+#define LOOP_SLEEP_SECS 5
 // these extremeties need to adjusted / calibrated.
 // this needs to be tested on a restart.
 #define DARK_VOLTS 1.6851

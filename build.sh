@@ -17,3 +17,8 @@ ranlib ./bin/libco2.a
 #this is where we make that into a running program
 gcc ./device.c -o./bin/device -lm -lwiringPi -lwiringPiDev -L ./bin -lco2
 gcc ./upstart/upstart.c -o ./bin/upstart -lwiringPi
+sudo cp ./upstart/co2sense.service /etc/systemd/system/co2sense.service
+sudo systemctl disable co2sense.service
+sudo systemctl enable co2sense.service
+sudo systemctl daemon-reload
+sudo systemctl start co2sense.service
