@@ -19,4 +19,5 @@ void  setup_lcd_8bitmode(int rows, int cols, int rs, int e,
                 int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7);
 void display_readings(float temp, float light, float co2);
 void lcd_clear();
+void lcd_message(char* msg);
 #endif

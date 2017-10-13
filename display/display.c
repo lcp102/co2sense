@@ -42,3 +42,7 @@ void display_readings(float temp, float light, float co2){
 void lcd_clear(){
   lcdClear(lcd);
 }
+void lcd_message(char* msg){
+  lcdClear(lcd);
+  lcdPuts(lcd ,msg);
+}

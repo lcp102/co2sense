@@ -43,11 +43,6 @@ for knowing the various levels of Co2 https://www.kane.co.uk/knowledge-centre/wh
 // this needs to be tested on a restart.
 #define DARK_VOLTS 1.6851
 #define BRIGHT_VOLTS 2.2831
-#define DEBOUNCE 200
-#define ADC_LM35_CHN 1
-#define ADC_LDR_CHN 2
-int lcd; //pointer for the lcd object
-
 void on_interrupt(int signal){
   digitalWrite(BLUE_GPIO, LOW);
   digitalWrite(RED_GPIO, LOW);
@@ -55,7 +50,6 @@ void on_interrupt(int signal){
   lcd_clear();
   exit(0);
 }
-
 int main(int argc, char const *argv[]) {
   int ok =0;
   // register a signal
@@ -66,6 +60,8 @@ int main(int argc, char const *argv[]) {
   wiringPiSetupGpio();
   setup_lcd_4bitmode(2,16,RS,E,D0,D1,D2,D3);
   setup_alert(BLUE_GPIO, RED_GPIO, BUZZ_GPIO);
+  lcd_message("Starting sensing..");
+  sleep(2);
   while (1) {
     float ppm=ppm_co2(&ok, 0, 0);
     if(ok!=0){perror("device.c: failed to get the co2 footprint");continue;}

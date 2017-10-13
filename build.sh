@@ -16,3 +16,4 @@ ar crv ./bin/libco2.a ./bin/adc.o ./bin/ldr.o ./bin/mq135.o ./bin/lm35.o ./bin/a
 ranlib ./bin/libco2.a
 #this is where we make that into a running program
 gcc ./device.c -o./bin/device -lm -lwiringPi -lwiringPiDev -L ./bin -lco2
+gcc ./upstart/upstart.c -o ./bin/upstart -lwiringPi
