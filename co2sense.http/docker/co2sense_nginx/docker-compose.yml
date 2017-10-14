@@ -1,0 +1,15 @@
+version : '3'
+services:
+  co2sense_nginx:
+    build:
+      context: .
+      dockerfile: ./build.dockerfile
+      args:
+        - SITENAME=co2sense
+        - PORT=8081
+    container_name: co2sense_nginx
+    volumes:
+      - /var/src/co2sense/www:/var/www/co2sense
+      - /var/www/node_modules:/var/www/libs
+    ports:
+      - "8081:8081"
