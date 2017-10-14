@@ -1,0 +1,19 @@
+version: '3'
+services:
+    co2sense_nginx:
+      build:
+        context: .
+        dockerfile: ./nginx.dockerfile
+        args:
+          - SITENAME=co2sense
+          - PORT=8035
+      ports:
+        - "8035:8035"
+      networks:
+        - co2sense-container-nw
+      volumes:
+        - /home/kneerunjun/source/co2sense/web:/var/www/co2sense
+        - /var/www/node_modules:/var/www/libs
+networks:
+    co2sense-container-nw:
+      driver: bridge
