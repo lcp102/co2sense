@@ -6,6 +6,9 @@ listening_port=sys.argv[2]
 cmd ="useradd nginx"
 subprocess.call(cmd.split())
 config="""
+upstream api_server {
+    server  co2sense_gunicorn:8000 fail_timeout=0;
+}
 server {
     #this is the specific port on which we are making the ecolight website accessible
 	listen {0} ;
@@ -19,6 +22,10 @@ server {
     location /libs {
         alias   /var/www/libs;
         autoindex   on;
+    }
+    location /api{
+        include proxy_params;
+        proxy_pass  http://api_server;
     }
 }
 """

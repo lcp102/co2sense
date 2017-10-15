@@ -14,6 +14,17 @@ services:
       volumes:
         - /home/kneerunjun/source/co2sense/web:/var/www/co2sense
         - /var/www/node_modules:/var/www/libs
+    co2sense_gunicorn:
+      build:
+        context:  .
+        dockerfile: ./gunicorn.dockerfile
+      # ports:
+      #   - 8000:8000
+      networks:
+        - co2sense-container-nw
+      volumes:
+        - /home/kneerunjun/source/co2sense/web/api/co2sensehttp:/var/http/co2sense
+
 networks:
     co2sense-container-nw:
       driver: bridge
