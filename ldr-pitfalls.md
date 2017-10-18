@@ -11,6 +11,7 @@ Here, we have a LDR whose output is fed to the RaspberryPi.
 
 ##### Illustration
 Circuit Diagram
+
 ![Circuit Diagram](circuit1.PNG)
 
 We want to measure the voltage drop across LDR. A 10K ohm resistor is connected in series with the LDR to measure the drop.
@@ -42,5 +43,9 @@ Circuit Diagram with potentiometer
 ![Circuit Diagram with potentiometer](circuit2.PNG)
 
 ##### 2. No Voltage divider circuit
-'add table'
+
+Following table illustrates the relationship of LDR with the resistance and voltage
+
+![table](table.PNG)
+
   To measure the actual output of LDR, we should introduce a voltage divider circuit by connecting a Resistor of say, 10Kohms in series to the LDR.
