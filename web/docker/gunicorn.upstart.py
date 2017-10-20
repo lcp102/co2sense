@@ -2,5 +2,6 @@
 import os , subprocess , time, re
 
 os.chdir('/var/http/co2sense/')
-command="gunicorn -w 2 -b :8000 co2sensehttp.wsgi"
+# command="gunicorn -w 2 -b :8000 co2sensehttp.wsgi"
+command ="python3 ./manage.py runserver 0.0.0.0:8000"
 subprocess.call(command.split())
