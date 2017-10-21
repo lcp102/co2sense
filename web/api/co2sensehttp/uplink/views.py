@@ -5,6 +5,8 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 import pdb, logging
 from pymongo import MongoClient
+from .helpers import json_friendly,parse_body_fromjson,new_device_ok
+from .co2sensemongo import get_deviceofid,register_new_device
 # Create your views here.
 # this is just the test data that we are maintaining here - this would be replaced by the actual mongo db
 regDevices =[
@@ -17,40 +19,7 @@ regDevices =[
     {"id":"B4671C68-4ED6-4B4E-9E04-9FE644308DDB","type":"Rpi0w", "location":"kneerunjun.home"},
 ]
 logging.basicConfig(level=logging.DEBUG)
-def get_deviceofid(deviceid):
-    '''This method needs to be replaced with the database query moving ahead from here.
-    For the testing purposes we have connected to the same to a cached data
-    deviceid    : id of the device to be found
-    '''
-    # this method helps in getting the device of a certain id from eother
-    try:
 
-        client = MongoClient('mongodb://co2sense_mongo:27017/')
-        logging.debug("Hurray we are connected to the database!!")
-    except Exception as e:
-        logging.warning("failed to connect to the database")
-        return None
-    result = list(filter(lambda x:x['id']==deviceid, regDevices))
-    if len(result) >0:
-        return result[0]
-    else:
-        return None
-def parse_body_fromjson(body):
-    try:
-        return json.loads(body.decode('utf-8'))
-    except Exception as e:
-        return None
-def new_device_ok(devicedetails):
-    if devicedetails != None:
-        if 'id' in devicedetails and 'type' in devicedetails and 'location' in devicedetails:
-            return True
-        else:
-            return False
-    else:
-        return False
-def register_new_device(devicedetails):
-    # this is where we fire the query to the database and create a new device registration
-    logging.debug("Registered new device..")
 @csrf_exempt
 def index(request):
     return JsonResponse({'message':'Hello world ! from inside django app'})
@@ -105,7 +74,7 @@ def devices(request, deviceid):
             device =get_deviceofid(deviceid)
             if device != None:
                 # sends back the device information
-                return JsonResponse(device)
+                return JsonResponse(json_friendly(device))
             else:
                 logging.debug("Device ping GET:Device with the id {0} not found".format(deviceid))
                 return HttpResponseBadRequest("Device ping GET: Device with the id not found")
