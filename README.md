@@ -18,3 +18,4 @@ A project from the PiFarm suite of application to sense the air quality , measur
 10.[Libcurl for REST HTTP client from C](https://curl.haxx.se/libcurl/c/libcurl-tutorial.html)
 11.[Deg celcius symbol on the LCD](https://forum.arduino.cc/index.php?topic=78119.0)
 12.[MQ7 Co sensor specification](https://www.sparkfun.com/datasheets/Sensors/Biometric/MQ-7.pdf)
+23.[MQ7 Co calculations](http://www.instructables.com/id/Arduino-CO-Monitor-Using-MQ-7-Sensor/)
