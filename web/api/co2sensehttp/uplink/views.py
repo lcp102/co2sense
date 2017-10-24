@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 import pdb, logging
 from pymongo import MongoClient
 from .helpers import json_friendly,parse_body_fromjson,new_device_ok
-from .co2sensemongo import get_deviceofid,register_new_device
+from .co2sensemongo import get_deviceofid,register_new_device,unregister_device
 # Create your views here.
 # this is just the test data that we are maintaining here - this would be replaced by the actual mongo db
 regDevices =[
@@ -82,6 +82,14 @@ def devices(request, deviceid):
             # now i feel we should actually see if we can log the errors to afile
             logging.warning("failed database connection")
             return HttpResponseServerError("Devices Ping GET: Failed query on database")
+    elif request.method == "DELETE":
+        # this shall remove the device that is already regstered.
+        try:
+            result = unregister_device(deviceid)
+            return JsonResponse({})
+        except Exception as e:
+            logging.warning("Error deleting device of id {0}".format(deviceid))
+            return HttpResponseServerError("Failed unregistered operation")
     else:
         logging.warning("Device tried accessing a method with a verb that is not allowed")
         return HttpResponseNotAllowed("Method verb not allowed")

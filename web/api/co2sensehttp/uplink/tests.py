@@ -67,6 +67,9 @@ class UplinkTestCase(TestCase):
          dvcInfo  = json.loads(response.content.decode('utf-8'))
          self.assertIsNotNone(dvcInfo, "We were expecting a non null return for the get request")
          print(dvcInfo)
-
-        #  response = c.get('/api/uplink/devices/{0}/'.format(testDevice['id']))
-        #  self.assertEqual(response.status_code, 400, "Expecting a 400 device not found")
+    def test_unregdevice(self):
+        devicetodel = "49E7B230-E20D-4C7D-A92D-D5EB91150B4B"
+        url = '/api/uplink/devices/{0}/'.format(devicetodel)
+        c = Client()
+        response=c.delete(url)
+        self.assertEqual(response.status_code, 200, "test_unregdevice:as expecting 200 ok on response")

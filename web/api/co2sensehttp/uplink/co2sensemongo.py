@@ -41,3 +41,13 @@ def register_new_device(devicedetails):
             raise e
         finally:
             client.close()
+def unregister_device(deviceid):
+    client,coll = connect_mongo_coll("devices")
+    if client != None and coll != None:
+        try:
+            coll.delete_one({"id":deviceid})
+        except Exception as e:
+            raise e
+        finally:
+            if client != None:
+                client.close()
