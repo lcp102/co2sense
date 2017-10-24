@@ -49,3 +49,8 @@ Following table illustrates the relationship of LDR with the resistance and volt
 ![table](table.PNG)
 
   To measure the actual output of LDR, we should introduce a voltage divider circuit by connecting a Resistor of say, 10Kohms in series to the LDR.
+
+#### Contact
+  ****
+
+  [coderchira](mailto:ruchira.aggarwal@gmail.com) is a web developer with inclination to work on IoT projects. She has programmed on Arduino and a starter on Rpi for building small scale cloud connected solutions. When she is not programming she is delivering lectures/ live demos on web development technologies.
