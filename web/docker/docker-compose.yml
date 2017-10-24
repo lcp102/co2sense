@@ -1,0 +1,39 @@
+version: '3'
+services:
+    co2sense_nginx:
+      build:
+        context: .
+        dockerfile: ./nginx.dockerfile
+        args:
+          - SITENAME=co2sense
+          - PORT=8035
+      ports:
+        - "8035:8035"
+      networks:
+        - co2sense-container-nw
+      volumes:
+        - /home/kneerunjun/source/co2sense/web:/var/www/co2sense
+        - /var/www/node_modules:/var/www/libs
+    co2sense_gunicorn:
+      build:
+        context:  .
+        dockerfile: ./gunicorn.dockerfile
+      ports:
+        - 8000:8000
+      networks:
+        - co2sense-container-nw
+      volumes:
+        - /home/kneerunjun/source/co2sense/web/api/co2sensehttp:/var/http/co2sense
+    co2sense_mongo:
+      build:
+        context: .
+        dockerfile: ./mongo.dockerfile
+      networks:
+        - co2sense-container-nw
+      volumes:
+        - /var/db/co2sense:/var/db/co2sense
+        - /var/log/co2sense:/var/log/co2sense
+
+networks:
+    co2sense-container-nw:
+      driver: bridge
